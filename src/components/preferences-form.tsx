@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import {
-  BUDGET_LEVELS,
   CLIMATE_PREFERENCES,
   DEFAULT_INTERESTS,
   PARTY_TYPES,
@@ -37,7 +36,8 @@ type PreferencesFormProps = {
 type FormState = {
   originRegion: string;
   tripLengthDays: string;
-  budgetLevel: PreferenceInput["budgetLevel"];
+  budgetMin: string;
+  budgetMax: string;
   interests: PreferenceInput["interests"];
   climate: PreferenceInput["climate"];
   pace: PreferenceInput["pace"];
@@ -48,7 +48,8 @@ type FormState = {
 const initialState: FormState = {
   originRegion: "",
   tripLengthDays: "6",
-  budgetLevel: "medium",
+  budgetMin: "5000",
+  budgetMax: "15000",
   interests: [],
   climate: "mild",
   pace: "balanced",
@@ -78,7 +79,8 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
     const result = await onSubmit({
       originRegion: formState.originRegion,
       tripLengthDays: Number(formState.tripLengthDays),
-      budgetLevel: formState.budgetLevel,
+      budgetMin: Number(formState.budgetMin),
+      budgetMax: Number(formState.budgetMax),
       interests: formState.interests,
       climate: formState.climate,
       pace: formState.pace,
@@ -171,24 +173,37 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-          Budget
-          <select
+          Budget minimum (CNY)
+          <input
             className="planner-field text-base"
+            type="number"
+            min="0"
             disabled={isLocked || isSubmitting}
-            value={formState.budgetLevel}
+            value={formState.budgetMin}
             onChange={(event) => {
               setFormState((current) => ({
                 ...current,
-                budgetLevel: event.target.value as PreferenceInput["budgetLevel"],
+                budgetMin: event.target.value,
               }));
             }}
-          >
-            {BUDGET_LEVELS.map((budgetLevel) => (
-              <option key={budgetLevel} value={budgetLevel}>
-                {labelForValue(budgetLevel)}
-              </option>
-            ))}
-          </select>
+          />
+        </label>
+
+        <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+          Budget maximum (CNY)
+          <input
+            className="planner-field text-base"
+            type="number"
+            min="0"
+            disabled={isLocked || isSubmitting}
+            value={formState.budgetMax}
+            onChange={(event) => {
+              setFormState((current) => ({
+                ...current,
+                budgetMax: event.target.value,
+              }));
+            }}
+          />
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">

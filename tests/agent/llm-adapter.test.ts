@@ -1,8 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createTravelModel, type TravelModelAdapter } from "@/server/llm/travel-model";
 
 describe("travel model adapter", () => {
+  beforeEach(() => {
+    delete process.env.IFLOW_API_KEY;
+    delete process.env.IFLOW_BASE_URL;
+    delete process.env.IFLOW_MODEL;
+  });
+
   it("can summarize missing fields", async () => {
     const adapter = createTravelModel();
 

@@ -8,6 +8,8 @@ test("validation failure can be corrected", async ({ page }) => {
   await expect(page.getByText(/please share originRegion/i)).toBeVisible();
 
   await page.getByLabel(/where are you leaving from/i).fill("Shanghai");
+  await page.getByLabel(/budget minimum/i).fill("8000");
+  await page.getByLabel(/budget maximum/i).fill("18000");
   await page.getByLabel(/travel month/i).selectOption("October");
   await page.getByText(/^Food$/).click();
   await page.getByRole("button", { name: /find destinations/i }).click();

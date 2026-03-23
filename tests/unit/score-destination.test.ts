@@ -7,7 +7,8 @@ import { scoreDestination } from "@/server/recommendations/score-destination";
 const basePreferences: PreferenceInput = {
   originRegion: "Shanghai",
   tripLengthDays: 5,
-  budgetLevel: "medium",
+  budgetMin: 8000,
+  budgetMax: 16000,
   interests: ["culture", "food"],
   climate: "mild",
   pace: "balanced",

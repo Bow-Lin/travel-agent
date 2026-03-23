@@ -15,7 +15,8 @@ export type Interest = (typeof DEFAULT_INTERESTS)[number];
 export type PreferenceInput = {
   originRegion: string;
   tripLengthDays: number;
-  budgetLevel: BudgetLevel;
+  budgetMin: number;
+  budgetMax: number;
   interests: Interest[];
   climate: ClimatePreference;
   pace: TravelPace;

@@ -19,7 +19,8 @@ describe("travel graph", () => {
     const state = await graph.start({
       originRegion: "Shanghai",
       tripLengthDays: 6,
-      budgetLevel: "medium",
+      budgetMin: 8000,
+      budgetMax: 18000,
       interests: ["food", "culture"],
       climate: "mild",
       pace: "balanced",
@@ -39,7 +40,8 @@ describe("travel graph", () => {
     const started = await graph.start({
       originRegion: "Shanghai",
       tripLengthDays: 4,
-      budgetLevel: "medium",
+      budgetMin: 8000,
+      budgetMax: 18000,
       interests: ["food", "culture"],
       climate: "mild",
       pace: "balanced",
@@ -60,7 +62,8 @@ describe("travel graph", () => {
     const started = await graph.start({
       originRegion: "Shanghai",
       tripLengthDays: 4,
-      budgetLevel: "medium",
+      budgetMin: 8000,
+      budgetMax: 18000,
       interests: ["food", "culture"],
       climate: "mild",
       pace: "balanced",

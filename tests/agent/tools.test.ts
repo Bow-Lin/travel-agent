@@ -7,7 +7,8 @@ import { runRecommendationTool } from "@/agent/travel-graph/tools/recommendation
 const preferences: PreferenceInput = {
   originRegion: "Shanghai",
   tripLengthDays: 5,
-  budgetLevel: "medium",
+  budgetMin: 8000,
+  budgetMax: 18000,
   interests: ["food", "culture"],
   climate: "mild",
   pace: "balanced",

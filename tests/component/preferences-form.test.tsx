@@ -17,7 +17,10 @@ describe("PreferencesForm", () => {
     await user.type(screen.getByLabelText(/where are you leaving from/i), "Shanghai");
     await user.clear(screen.getByLabelText(/trip length/i));
     await user.type(screen.getByLabelText(/trip length/i), "10");
-    await user.selectOptions(screen.getByLabelText(/budget/i), "high");
+    await user.clear(screen.getByLabelText(/budget minimum/i));
+    await user.type(screen.getByLabelText(/budget minimum/i), "9000");
+    await user.clear(screen.getByLabelText(/budget maximum/i));
+    await user.type(screen.getByLabelText(/budget maximum/i), "22000");
     await user.selectOptions(screen.getByLabelText(/climate/i), "warm");
     await user.selectOptions(screen.getByLabelText(/pace/i), "packed");
     await user.selectOptions(screen.getByLabelText(/travel month/i), "May");
@@ -30,7 +33,8 @@ describe("PreferencesForm", () => {
       expect(onSubmit).toHaveBeenCalledWith({
         originRegion: "Shanghai",
         tripLengthDays: 10,
-        budgetLevel: "high",
+        budgetMin: 9000,
+        budgetMax: 22000,
         interests: ["food", "beach"],
         climate: "warm",
         pace: "packed",

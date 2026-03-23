@@ -4,6 +4,8 @@ test("happy path from preferences to itinerary", async ({ page }) => {
   await page.goto("/");
 
   await page.getByLabel(/where are you leaving from/i).fill("Shanghai");
+  await page.getByLabel(/budget minimum/i).fill("8000");
+  await page.getByLabel(/budget maximum/i).fill("18000");
   await page.getByLabel(/travel month/i).selectOption("October");
   await page.getByText(/^Food$/).click();
   await page.getByText(/^Culture$/).click();

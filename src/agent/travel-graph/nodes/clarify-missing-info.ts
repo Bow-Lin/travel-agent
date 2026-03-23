@@ -6,7 +6,7 @@ function buildKnownContext(state: TravelAgentState) {
     return "No structured travel preferences have been recorded yet.";
   }
 
-  return `Current preferences: origin ${state.preferences.originRegion || "unknown"}, budget ${state.preferences.budgetLevel}, climate ${state.preferences.climate}, pace ${state.preferences.pace}.`;
+  return `Current preferences: origin ${state.preferences.originRegion || "unknown"}, budget CNY ${state.preferences.budgetMin}-${state.preferences.budgetMax}, climate ${state.preferences.climate}, pace ${state.preferences.pace}.`;
 }
 
 export async function clarifyMissingInfo(

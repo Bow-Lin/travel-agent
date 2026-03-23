@@ -1,10 +1,25 @@
 import type {
+  BudgetLevel,
   DestinationCatalogEntry,
   DestinationScore,
   PreferenceInput,
 } from "@/lib/types";
 
-function budgetDistance(preferred: PreferenceInput["budgetLevel"], actual: DestinationCatalogEntry["budgetBand"]) {
+function budgetBandFromRange(preferences: Pick<PreferenceInput, "budgetMin" | "budgetMax">): BudgetLevel {
+  const midpoint = (preferences.budgetMin + preferences.budgetMax) / 2;
+
+  if (midpoint < 8000) {
+    return "low";
+  }
+
+  if (midpoint < 18000) {
+    return "medium";
+  }
+
+  return "high";
+}
+
+function budgetDistance(preferred: BudgetLevel, actual: DestinationCatalogEntry["budgetBand"]) {
   const scale = {
     low: 0,
     medium: 1,
@@ -21,10 +36,11 @@ export function scoreDestination(
   let score = 0;
   const reasons: string[] = [];
 
-  const budgetGap = budgetDistance(preferences.budgetLevel, destination.budgetBand);
+  const derivedBudgetBand = budgetBandFromRange(preferences);
+  const budgetGap = budgetDistance(derivedBudgetBand, destination.budgetBand);
   if (budgetGap === 0) {
     score += 3;
-    reasons.push(`Matches your ${preferences.budgetLevel} budget.`);
+    reasons.push(`Fits your budget range of CNY ${preferences.budgetMin}-${preferences.budgetMax}.`);
   } else if (budgetGap === 1) {
     score += 1;
   } else {

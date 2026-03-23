@@ -15,7 +15,7 @@ export async function recommendDestinationsNode(
   }
 
   const baseRecommendations = runRecommendationTool(state.preferences);
-  const travelerContext = `The traveler prefers ${state.preferences.interests.join(", ")} in ${state.preferences.travelMonth} with a ${state.preferences.budgetLevel} budget.`;
+  const travelerContext = `The traveler prefers ${state.preferences.interests.join(", ")} in ${state.preferences.travelMonth} with a budget range of CNY ${state.preferences.budgetMin}-${state.preferences.budgetMax}.`;
 
   const recommendations = await Promise.all(
     baseRecommendations.map(async (recommendation) => ({

@@ -6,7 +6,8 @@ import { recommendDestinations } from "@/server/recommendations/recommend-destin
 const preferences: PreferenceInput = {
   originRegion: "Shanghai",
   tripLengthDays: 7,
-  budgetLevel: "medium",
+  budgetMin: 8000,
+  budgetMax: 18000,
   interests: ["culture", "food", "history"],
   climate: "mild",
   pace: "balanced",

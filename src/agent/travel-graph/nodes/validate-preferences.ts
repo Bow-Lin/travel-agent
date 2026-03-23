@@ -4,7 +4,8 @@ import { preferenceInputSchema } from "@/lib/validation";
 const FIELD_ORDER = [
   "originRegion",
   "tripLengthDays",
-  "budgetLevel",
+  "budgetMin",
+  "budgetMax",
   "interests",
   "climate",
   "pace",

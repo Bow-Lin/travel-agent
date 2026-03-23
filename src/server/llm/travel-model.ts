@@ -27,14 +27,34 @@ export type TravelModelAdapter = {
 export type TravelModel = TravelModelAdapter;
 
 async function maybeInvokeModel(prompt: string) {
-  const model = createChatModel();
+  const client = createChatModel();
+  const model = process.env.IFLOW_MODEL ?? "qwen3-max";
 
-  if (!model) {
+  if (!client) {
     return null;
   }
 
-  const response = await model.invoke(prompt);
-  return typeof response.content === "string" ? response.content : response.content.map((part) => (typeof part === "string" ? part : "")).join(" ").trim();
+  try {
+    const response = await client.chat.completions.create({
+      model,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const content = response.choices[0]?.message?.content;
+
+    if (typeof content === "string") {
+      return content;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export function createTravelModel(): TravelModelAdapter {

@@ -11,7 +11,8 @@ describe("travel actions", () => {
   const validPreferences: PreferenceInput = {
     originRegion: "Shanghai",
     tripLengthDays: 6,
-    budgetLevel: "medium",
+    budgetMin: 8000,
+    budgetMax: 18000,
     interests: ["food", "culture"],
     climate: "mild",
     pace: "balanced",
@@ -90,7 +91,8 @@ describe("travel actions", () => {
     const result = await recommendDestinationsAction({
       originRegion: "",
       tripLengthDays: 0,
-      budgetLevel: "medium",
+      budgetMin: 8000,
+      budgetMax: 18000,
       interests: [],
       climate: "mild",
       pace: "balanced",

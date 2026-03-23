@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 import {
-  BUDGET_LEVELS,
   CLIMATE_PREFERENCES,
   DEFAULT_INTERESTS,
+  MAX_BUDGET_AMOUNT,
   MAX_TRIP_LENGTH_DAYS,
+  MIN_BUDGET_AMOUNT,
   MIN_TRIP_LENGTH_DAYS,
   PARTY_TYPES,
   TRAVEL_PACES,
@@ -20,7 +21,16 @@ export const preferenceInputSchema = z.object({
     .int("Trip length must be between 1 and 21 days.")
     .min(MIN_TRIP_LENGTH_DAYS, "Trip length must be between 1 and 21 days.")
     .max(MAX_TRIP_LENGTH_DAYS, "Trip length must be between 1 and 21 days."),
-  budgetLevel: z.enum(BUDGET_LEVELS),
+  budgetMin: z
+    .number({ error: "Minimum budget must be between 0 and 100000." })
+    .int("Minimum budget must be between 0 and 100000.")
+    .min(MIN_BUDGET_AMOUNT, "Minimum budget must be between 0 and 100000.")
+    .max(MAX_BUDGET_AMOUNT, "Minimum budget must be between 0 and 100000."),
+  budgetMax: z
+    .number({ error: "Maximum budget must be between 0 and 100000." })
+    .int("Maximum budget must be between 0 and 100000.")
+    .min(MIN_BUDGET_AMOUNT, "Maximum budget must be between 0 and 100000.")
+    .max(MAX_BUDGET_AMOUNT, "Maximum budget must be between 0 and 100000."),
   interests: z
     .array(z.enum(DEFAULT_INTERESTS), { error: "Choose at least one travel interest." })
     .min(1, "Choose at least one travel interest."),
@@ -31,6 +41,9 @@ export const preferenceInputSchema = z.object({
     .trim()
     .min(1, "Please choose an approximate travel month."),
   partyType: z.enum(PARTY_TYPES),
+}).refine((value) => value.budgetMax >= value.budgetMin, {
+  message: "Maximum budget must be greater than or equal to minimum budget.",
+  path: ["budgetMax"],
 });
 
 export const confirmedDestinationSchema = z.object({

@@ -6,7 +6,8 @@ import { generateItinerary } from "@/server/itinerary/generate-itinerary";
 const preferences: PreferenceInput = {
   originRegion: "Shanghai",
   tripLengthDays: 4,
-  budgetLevel: "medium",
+  budgetMin: 8000,
+  budgetMax: 18000,
   interests: ["food", "culture"],
   climate: "mild",
   pace: "relaxed",

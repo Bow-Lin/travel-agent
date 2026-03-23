@@ -1,14 +1,20 @@
-import { ChatOpenAI } from "@langchain/openai";
+import OpenAI from "openai";
 
 export function createChatModel() {
-  const apiKey = process.env.OPENAI_API_KEY;
+  if (process.env.MOCK_LLM_RESPONSES === "true") {
+    return null;
+  }
+
+  const apiKey = process.env.IFLOW_API_KEY;
+  const baseURL = process.env.IFLOW_BASE_URL ?? "https://apis.iflow.cn/v1";
 
   if (!apiKey) {
     return null;
   }
 
-  return new ChatOpenAI({
+  return new OpenAI({
     apiKey,
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+    baseURL,
+    dangerouslyAllowBrowser: process.env.NODE_ENV === "test",
   });
 }

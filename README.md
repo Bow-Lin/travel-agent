@@ -28,12 +28,22 @@ The current checkpointer is in-memory only.
 
 ## Environment variables
 
-The app can run without an LLM API key because the adapter includes development fallbacks. To enable real LLM responses, set:
+The app can run without an LLM API key because the adapter includes development fallbacks. To enable real LLM responses through iFlow, create a local env file at `travel_agent/.env.local`.
+
+Example:
 
 ```bash
-OPENAI_API_KEY=your_key_here
-OPENAI_MODEL=gpt-4o-mini
+# travel_agent/.env.local
+IFLOW_API_KEY=your_key_here
+IFLOW_BASE_URL=https://apis.iflow.cn/v1
+IFLOW_MODEL=qwen3-max
 ```
+
+Notes:
+
+- `.env.local` is already ignored by git through `.gitignore`, so it stays local.
+- `IFLOW_BASE_URL` should stay `https://apis.iflow.cn/v1` unless your provider gives you a different endpoint.
+- `IFLOW_MODEL` is currently set up for `qwen3-max` by default, so you can omit it if you want to use that model.
 
 ## Development
 
@@ -43,13 +53,48 @@ Install dependencies:
 npm install
 ```
 
-Start the app:
+Run the development server:
 
 ```bash
 npm run dev
 ```
 
 Open `http://localhost:3000` in the browser.
+
+## Quick start
+
+From the project root:
+
+```bash
+cat > .env.local <<'EOF'
+IFLOW_API_KEY=your_key_here
+IFLOW_BASE_URL=https://apis.iflow.cn/v1
+IFLOW_MODEL=qwen3-max
+EOF
+```
+
+Then run:
+
+```bash
+npm install
+npm run dev
+```
+
+If the env vars are loaded correctly, the LangGraph flow will use iFlow for:
+
+- missing-field clarification
+- recommendation reasoning
+- itinerary polishing
+
+If the env vars are missing, the app still runs, but those steps fall back to local deterministic text.
+
+## Test behavior
+
+Automated tests do not call the real LLM.
+
+- Vitest runs with the LLM client disabled by default.
+- Playwright starts the app with `MOCK_LLM_RESPONSES=true`.
+- That means tests only verify app behavior and graph flow, not live iFlow responses.
 
 ## Verification
 

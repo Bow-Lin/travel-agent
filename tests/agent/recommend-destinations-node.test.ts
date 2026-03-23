@@ -21,7 +21,8 @@ describe("recommendDestinationsNode", () => {
         preferences: {
           originRegion: "Shanghai",
           tripLengthDays: 6,
-          budgetLevel: "medium",
+          budgetMin: 8000,
+          budgetMax: 18000,
           interests: ["food", "culture"],
           climate: "mild",
           pace: "balanced",
