@@ -23,6 +23,7 @@ describe("generateItineraryNode", () => {
           tripLengthDays: 2,
           budgetMin: 8000,
           budgetMax: 18000,
+          additionalRequirements: "",
           interests: ["food", "culture"],
           climate: "mild",
           pace: "balanced",

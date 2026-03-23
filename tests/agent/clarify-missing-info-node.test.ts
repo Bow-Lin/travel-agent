@@ -17,6 +17,18 @@ describe("clarifyMissingInfo node", () => {
         ...createInitialTravelAgentState("thread-1"),
         phase: "clarifying_preferences",
         missingFields: ["travelMonth", "interests"],
+        preferences: {
+          originRegion: "Shanghai",
+          tripLengthDays: 6,
+          budgetMin: 8000,
+          budgetMax: 18000,
+          additionalRequirements: "Need quiet evenings",
+          interests: [],
+          climate: "mild",
+          pace: "balanced",
+          travelMonth: "",
+          partyType: "couple",
+        },
       },
       adapter,
     );
@@ -25,6 +37,11 @@ describe("clarifyMissingInfo node", () => {
       role: "assistant",
       content: "Please tell me your travel month and interests.",
     });
+    expect(adapter.clarifyMissingInformation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        knownContext: expect.stringContaining("Need quiet evenings"),
+      }),
+    );
   });
 
   it("does nothing when there are no missing fields", async () => {

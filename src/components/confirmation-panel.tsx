@@ -41,15 +41,13 @@ export function ConfirmationPanel({
 
   return (
     <section className="planner-panel planner-panel-success p-5 sm:p-7 lg:p-8">
-      <p className="planner-kicker text-emerald-700">
-        Confirmed destination
-      </p>
+      <p className="planner-kicker text-emerald-700">Confirmed destination</p>
 
-      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
         <div>
           <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            <span className="rounded-full border border-white/80 bg-white/70 px-3 py-2">Step 3</span>
-            <span className="rounded-full border border-emerald-100 bg-emerald-50/90 px-3 py-2 text-emerald-800">
+            <span className="planner-tag">Step 3</span>
+            <span className="planner-tag border-emerald-100 bg-emerald-50/90 text-emerald-800">
               {tripLengthDays} days planned
             </span>
           </div>
@@ -57,13 +55,13 @@ export function ConfirmationPanel({
             {destination.name}, {destination.country}
           </h2>
           <p className="planner-copy mt-3 max-w-2xl text-sm leading-7 sm:text-base">
-            You have locked in the destination. Generate a {tripLengthDays}-day itinerary next to turn
-            the shortlist into a concrete plan.
+            This destination is currently selected for your trip. Generate a {tripLengthDays}-day
+            itinerary next, or go back to the shortlist above if you want to switch destinations.
           </p>
         </div>
 
-        <div className="flex flex-col items-start gap-3 lg:items-end">
-            <p aria-live="polite" className="planner-status text-sm leading-6">
+        <div className="planner-note flex flex-col items-start gap-4 lg:items-end lg:text-right">
+          <p aria-live="polite" className="planner-status text-sm leading-6">
             {disabled && !isGenerating
               ? "Planner is busy finishing the current step."
               : isGenerating
@@ -71,7 +69,7 @@ export function ConfirmationPanel({
                 : "Ready to turn this destination into a day-by-day plan."}
           </p>
           <button
-            className="planner-primary-button inline-flex w-full items-center justify-center px-6 py-3 text-sm font-semibold sm:w-auto"
+            className="planner-primary-button inline-flex w-full items-center justify-center px-6 py-3 text-sm font-semibold"
             disabled={disabled || isGenerating}
             type="button"
             onClick={handleGenerate}

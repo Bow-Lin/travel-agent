@@ -23,6 +23,7 @@ describe("recommendDestinationsNode", () => {
           tripLengthDays: 6,
           budgetMin: 8000,
           budgetMax: 18000,
+          additionalRequirements: "Need tea-house neighborhoods",
           interests: ["food", "culture"],
           climate: "mild",
           pace: "balanced",
@@ -36,5 +37,10 @@ describe("recommendDestinationsNode", () => {
     expect(state.phase).toBe("awaiting_confirmation");
     expect(state.recommendations?.length).toBeGreaterThan(0);
     expect(state.recommendations?.[0].matchReasons[0]).toContain("ideal for this trip");
+    expect(adapter.enhanceRecommendationSummary).toHaveBeenCalledWith(
+      expect.objectContaining({
+        travelerContext: expect.stringContaining("Need tea-house neighborhoods"),
+      }),
+    );
   });
 });

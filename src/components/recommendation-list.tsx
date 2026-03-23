@@ -42,11 +42,9 @@ export function RecommendationList({
 
   return (
     <section className="planner-panel planner-panel-cool p-5 sm:p-7 lg:p-8">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-start">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
         <div>
-          <p className="planner-kicker text-sky-700">
-            Ranked shortlist
-          </p>
+          <p className="planner-kicker text-sky-700">Ranked shortlist</p>
           <h2 className="mt-3 font-[family:var(--font-fraunces)] text-3xl leading-tight text-slate-900">
             Compare a focused set of destinations before you commit to one.
           </h2>
@@ -55,10 +53,8 @@ export function RecommendationList({
           </p>
         </div>
 
-        <div className="rounded-[1.5rem] border border-white/75 bg-white/55 p-4 text-sm leading-6 text-slate-600 shadow-sm">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-sky-800">
-            Step 2
-          </p>
+        <div className="planner-note text-sm leading-6 text-slate-600">
+          <p className="planner-kicker text-sky-800">Step 2</p>
           <p className="mt-3">
             Review the ranked cards, confirm one destination, then the itinerary step opens below.
           </p>
@@ -83,7 +79,7 @@ export function RecommendationList({
             : "Choose one destination to continue to itinerary generation."}
         </p>
 
-        <div className="rounded-[1.75rem] border border-white/75 bg-white/45 p-2 sm:p-3">
+        <div className="planner-card-subtle p-2.5 sm:p-3">
           <div className="grid gap-5 xl:grid-cols-2">
             {recommendations.map((recommendation, index) => (
               <DestinationCard

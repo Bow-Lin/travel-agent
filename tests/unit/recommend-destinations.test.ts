@@ -8,6 +8,7 @@ const preferences: PreferenceInput = {
   tripLengthDays: 7,
   budgetMin: 8000,
   budgetMax: 18000,
+  additionalRequirements: "",
   interests: ["culture", "food", "history"],
   climate: "mild",
   pace: "balanced",
@@ -50,5 +51,17 @@ describe("recommendDestinations", () => {
       bestMonths: expect.any(Array),
       score: expect.any(Number),
     });
+  });
+
+  it("lets additional requirements slightly improve a matching destination score", () => {
+    const withoutNote = recommendDestinations(preferences);
+    const withNote = recommendDestinations({
+      ...preferences,
+      additionalRequirements: "Japan tea houses",
+    });
+
+    expect(withNote.find((recommendation) => recommendation.id === "kyoto-japan")?.score).toBeGreaterThan(
+      withoutNote.find((recommendation) => recommendation.id === "kyoto-japan")?.score ?? 0,
+    );
   });
 });

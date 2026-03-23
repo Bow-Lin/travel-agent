@@ -8,6 +8,7 @@ const preferences: PreferenceInput = {
   tripLengthDays: 4,
   budgetMin: 8000,
   budgetMax: 18000,
+  additionalRequirements: "",
   interests: ["food", "culture"],
   climate: "mild",
   pace: "relaxed",

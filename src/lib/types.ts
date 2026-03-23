@@ -17,6 +17,7 @@ export type PreferenceInput = {
   tripLengthDays: number;
   budgetMin: number;
   budgetMax: number;
+  additionalRequirements: string;
   interests: Interest[];
   climate: ClimatePreference;
   pace: TravelPace;

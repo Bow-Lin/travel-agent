@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import {
   CLIMATE_PREFERENCES,
@@ -38,6 +38,7 @@ type FormState = {
   tripLengthDays: string;
   budgetMin: string;
   budgetMax: string;
+  additionalRequirements: string;
   interests: PreferenceInput["interests"];
   climate: PreferenceInput["climate"];
   pace: PreferenceInput["pace"];
@@ -50,6 +51,7 @@ const initialState: FormState = {
   tripLengthDays: "6",
   budgetMin: "5000",
   budgetMax: "15000",
+  additionalRequirements: "",
   interests: [],
   climate: "mild",
   pace: "balanced",
@@ -63,13 +65,99 @@ function labelForValue(value: string) {
 
 export function PreferencesForm({ helperMessage = null, isLocked = false, onSubmit }: PreferencesFormProps) {
   const [formState, setFormState] = useState<FormState>(initialState);
+  const [draftAdditionalRequirements, setDraftAdditionalRequirements] = useState(
+    initialState.additionalRequirements,
+  );
+  const [isRequirementsDialogOpen, setIsRequirementsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const additionalRequirementsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const additionalRequirementsId = useId();
+  const additionalRequirementsTitleId = useId();
+  const additionalRequirementsDescriptionId = useId();
+  const isInteractionDisabled = isLocked || isSubmitting;
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (!dialog) {
+      return;
+    }
+
+    if (isRequirementsDialogOpen) {
+      if (!dialog.open) {
+        if (typeof dialog.showModal === "function") {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute("open", "");
+        }
+      }
+
+      return;
+    }
+
+    if (!dialog.open) {
+      return;
+    }
+
+    if (typeof dialog.close === "function") {
+      dialog.close();
+    } else {
+      dialog.removeAttribute("open");
+    }
+  }, [isRequirementsDialogOpen]);
+
+  function openAdditionalRequirementsDialog() {
+    if (isInteractionDisabled) {
+      return;
+    }
+
+    setDraftAdditionalRequirements(formState.additionalRequirements);
+    setIsRequirementsDialogOpen(true);
+  }
+
+  function restoreAdditionalRequirementsTriggerFocus() {
+    const trigger = additionalRequirementsTriggerRef.current;
+
+    if (!trigger) {
+      return;
+    }
+
+    setTimeout(() => {
+      trigger.focus();
+    }, 0);
+  }
+
+  function closeAdditionalRequirementsDialog() {
+    setIsRequirementsDialogOpen(false);
+    restoreAdditionalRequirementsTriggerFocus();
+  }
+
+  function handleAdditionalRequirementsCancel() {
+    setDraftAdditionalRequirements(formState.additionalRequirements);
+    closeAdditionalRequirementsDialog();
+  }
+
+  function handleAdditionalRequirementsSave() {
+    const nextRequirements = draftAdditionalRequirements.trim();
+
+    setFormState((current) => ({
+      ...current,
+      additionalRequirements: nextRequirements,
+    }));
+    setDraftAdditionalRequirements(nextRequirements);
+    closeAdditionalRequirementsDialog();
+  }
+
+  function handleAdditionalRequirementsClear() {
+    setDraftAdditionalRequirements("");
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (isLocked) {
+    if (isInteractionDisabled) {
       return;
     }
 
@@ -81,6 +169,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
       tripLengthDays: Number(formState.tripLengthDays),
       budgetMin: Number(formState.budgetMin),
       budgetMax: Number(formState.budgetMax),
+      additionalRequirements: formState.additionalRequirements,
       interests: formState.interests,
       climate: formState.climate,
       pace: formState.pace,
@@ -113,11 +202,9 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
       className="planner-panel p-5 sm:p-7 lg:p-8"
       onSubmit={handleSubmit}
     >
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-start">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
         <div>
-          <p className="planner-kicker text-amber-700">
-            Travel brief
-          </p>
+          <p className="planner-kicker text-amber-700">Travel brief</p>
           <h2 className="mt-3 font-[family:var(--font-fraunces)] text-3xl leading-tight text-slate-900">
             Shape the kind of trip you want before we rank destinations.
           </h2>
@@ -126,22 +213,20 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
           </p>
         </div>
 
-        <div className="rounded-[1.5rem] border border-white/75 bg-white/55 p-4 text-sm leading-6 text-slate-600 shadow-sm">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-amber-800">
-            Step 1
-          </p>
+        <div className="planner-note text-sm leading-6 text-slate-600">
+          <p className="planner-kicker text-amber-800">Step 1</p>
           <p className="mt-3">
             A tighter brief produces a more opinionated shortlist, so each next decision feels easier.
           </p>
         </div>
       </div>
 
-      <div className="mt-8 grid gap-5 rounded-[1.75rem] border border-white/75 bg-[rgba(255,251,247,0.62)] p-4 sm:grid-cols-2 sm:p-5">
+      <div className="planner-card-subtle mt-8 grid gap-5 p-4 sm:grid-cols-2 sm:p-5">
         <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
           Where are you leaving from?
           <input
             className="planner-field text-base"
-            disabled={isLocked || isSubmitting}
+            disabled={isInteractionDisabled}
             name="originRegion"
             value={formState.originRegion}
             onChange={(event) => {
@@ -161,7 +246,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
             max="21"
             name="tripLengthDays"
             type="number"
-            disabled={isLocked || isSubmitting}
+            disabled={isInteractionDisabled}
             value={formState.tripLengthDays}
             onChange={(event) => {
               setFormState((current) => ({
@@ -178,7 +263,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
             className="planner-field text-base"
             type="number"
             min="0"
-            disabled={isLocked || isSubmitting}
+            disabled={isInteractionDisabled}
             value={formState.budgetMin}
             onChange={(event) => {
               setFormState((current) => ({
@@ -195,7 +280,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
             className="planner-field text-base"
             type="number"
             min="0"
-            disabled={isLocked || isSubmitting}
+            disabled={isInteractionDisabled}
             value={formState.budgetMax}
             onChange={(event) => {
               setFormState((current) => ({
@@ -210,7 +295,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
           Climate
           <select
             className="planner-field text-base"
-            disabled={isLocked || isSubmitting}
+            disabled={isInteractionDisabled}
             value={formState.climate}
             onChange={(event) => {
               setFormState((current) => ({
@@ -231,7 +316,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
           Pace
           <select
             className="planner-field text-base"
-            disabled={isLocked || isSubmitting}
+            disabled={isInteractionDisabled}
             value={formState.pace}
             onChange={(event) => {
               setFormState((current) => ({
@@ -252,7 +337,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
           Travel month
           <select
             className="planner-field text-base"
-            disabled={isLocked || isSubmitting}
+            disabled={isInteractionDisabled}
             value={formState.travelMonth}
             onChange={(event) => {
               setFormState((current) => ({
@@ -274,7 +359,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
           Party type
           <select
             className="planner-field text-base"
-            disabled={isLocked || isSubmitting}
+            disabled={isInteractionDisabled}
             value={formState.partyType}
             onChange={(event) => {
               setFormState((current) => ({
@@ -292,7 +377,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
         </label>
       </div>
 
-      <fieldset className="mt-6 rounded-[1.75rem] border border-white/75 bg-white/55 p-4 sm:p-5">
+      <fieldset className="planner-card-subtle mt-6 p-4 sm:p-5">
         <legend className="text-sm font-medium text-slate-700">Interests</legend>
         <p className="planner-copy mt-2 text-sm leading-6">
           Pick the experiences you want the shortlist to optimize around.
@@ -311,7 +396,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
                 <input
                   checked={isChecked}
                   className="sr-only"
-                  disabled={isLocked || isSubmitting}
+                  disabled={isInteractionDisabled}
                   type="checkbox"
                   onChange={() => {
                     toggleInterest(interest);
@@ -324,17 +409,128 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
         </div>
       </fieldset>
 
-        {errorMessage ? (
+      <section className="planner-card-subtle mt-6 p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-sm font-medium text-slate-700">Additional requirements</p>
+            <p className="planner-copy mt-2 text-sm leading-6">
+              Add any notes that do not fit the structured fields, like destination constraints,
+              must-have details, or context we should keep in mind.
+            </p>
+          </div>
+
+          <button
+            aria-expanded={isRequirementsDialogOpen}
+            aria-haspopup="dialog"
+            className="planner-secondary-button inline-flex items-center justify-center px-4 py-3 text-sm font-medium"
+            disabled={isInteractionDisabled}
+            ref={additionalRequirementsTriggerRef}
+            type="button"
+            onClick={openAdditionalRequirementsDialog}
+          >
+            {formState.additionalRequirements ? "Edit requirements" : "Add requirements"}
+          </button>
+        </div>
+
+        <div className="planner-card-subtle mt-4 px-4 py-4 text-sm leading-6 text-slate-600">
+          {formState.additionalRequirements ? (
+            <>
+              <p className="planner-kicker text-amber-800">Saved note</p>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                {formState.additionalRequirements}
+              </p>
+            </>
+          ) : (
+            <p className="planner-copy text-sm leading-6">
+              No extra requirements saved yet. Leave this blank if the structured fields already
+              cover the brief.
+            </p>
+          )}
+        </div>
+      </section>
+
+      <dialog
+        aria-describedby={additionalRequirementsDescriptionId}
+        aria-labelledby={additionalRequirementsTitleId}
+        className="planner-dialog planner-panel p-0 text-left text-slate-900"
+        ref={dialogRef}
+        onCancel={(event) => {
+          event.preventDefault();
+          handleAdditionalRequirementsCancel();
+        }}
+      >
+        <div className="p-5 sm:p-7">
+          <p className="planner-kicker text-amber-700">Additional requirements</p>
+          <h3
+            className="mt-3 font-[family:var(--font-fraunces)] text-3xl leading-tight text-slate-900"
+            id={additionalRequirementsTitleId}
+          >
+            Capture any extra constraints before we rank destinations.
+          </h3>
           <p
-            aria-live="polite"
+            className="planner-copy mt-4 text-sm leading-7 sm:text-base"
+            id={additionalRequirementsDescriptionId}
+          >
+            Keep the note concise and specific so the shortlist can use it without overpowering the
+            structured fields.
+          </p>
+
+          <label className="mt-6 flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Additional requirements note
+            <textarea
+              className="planner-field planner-textarea text-base"
+              disabled={isInteractionDisabled}
+              id={additionalRequirementsId}
+              value={draftAdditionalRequirements}
+              onChange={(event) => {
+                setDraftAdditionalRequirements(event.target.value);
+              }}
+            />
+          </label>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-white/65 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+          <button
+            className="planner-secondary-button inline-flex items-center justify-center px-4 py-3 text-sm font-medium"
+            disabled={isInteractionDisabled || draftAdditionalRequirements.length === 0}
+            type="button"
+            onClick={handleAdditionalRequirementsClear}
+          >
+            Clear note
+          </button>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              className="planner-secondary-button inline-flex items-center justify-center px-4 py-3 text-sm font-medium"
+              disabled={isInteractionDisabled}
+              type="button"
+              onClick={handleAdditionalRequirementsCancel}
+            >
+              Cancel
+            </button>
+            <button
+              className="planner-primary-button inline-flex items-center justify-center px-6 py-3 text-sm font-semibold"
+              disabled={isInteractionDisabled}
+              type="button"
+              onClick={handleAdditionalRequirementsSave}
+            >
+              Save requirements
+            </button>
+          </div>
+        </div>
+      </dialog>
+
+      {errorMessage ? (
+        <p
+          aria-live="polite"
           className="planner-alert mt-6 px-4 py-3 text-sm text-rose-700"
         >
           {errorMessage}
         </p>
-        ) : null}
+      ) : null}
 
       {!errorMessage && helperMessage ? (
-        <p aria-live="polite" className="planner-alert mt-6 px-4 py-3 text-sm text-amber-900">
+        <p aria-live="polite" className="planner-note mt-6 text-sm leading-6 text-amber-900">
           {helperMessage}
         </p>
       ) : null}
@@ -355,7 +551,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
         </div>
         <button
           className="planner-primary-button inline-flex w-full items-center justify-center px-6 py-3 text-sm font-semibold sm:w-auto"
-          disabled={isLocked || isSubmitting}
+          disabled={isInteractionDisabled}
           type="submit"
         >
           {isSubmitting ? "Finding destinations..." : "Find destinations"}

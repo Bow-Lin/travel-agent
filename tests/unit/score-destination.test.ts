@@ -9,6 +9,7 @@ const basePreferences: PreferenceInput = {
   tripLengthDays: 5,
   budgetMin: 8000,
   budgetMax: 16000,
+  additionalRequirements: "",
   interests: ["culture", "food"],
   climate: "mild",
   pace: "balanced",
@@ -70,5 +71,48 @@ describe("scoreDestination", () => {
         expect.stringContaining("food"),
       ]),
     );
+  });
+
+  it("gives a capped boost when additional requirements materially match destination details", () => {
+    const kyoto = destinationCatalog.find((destination) => destination.id === "kyoto-japan");
+    const lisbon = destinationCatalog.find((destination) => destination.id === "lisbon-portugal");
+
+    expect(kyoto).toBeDefined();
+    expect(lisbon).toBeDefined();
+
+    const noteDrivenPreferences = {
+      ...basePreferences,
+      additionalRequirements: "Japan tea houses seasonal food",
+      climate: "warm" as const,
+      partyType: "solo" as const,
+      travelMonth: "January",
+    } satisfies PreferenceInput;
+
+    const kyotoResult = scoreDestination(noteDrivenPreferences, kyoto!);
+    const lisbonResult = scoreDestination(noteDrivenPreferences, lisbon!);
+
+    expect(kyotoResult.score).toBeGreaterThan(lisbonResult.score);
+    expect(kyotoResult.reasons).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Your extra requirements align with"),
+      ]),
+    );
+  });
+
+  it("does not double-count structured interests, month, or party type repeated in the note", () => {
+    const kyoto = destinationCatalog.find((destination) => destination.id === "kyoto-japan");
+
+    expect(kyoto).toBeDefined();
+
+    const repeatedStructuredPreferences = {
+      ...basePreferences,
+      additionalRequirements: "October couple trip with food and culture",
+    } satisfies PreferenceInput;
+
+    const baselineResult = scoreDestination(basePreferences, kyoto!);
+    const repeatedResult = scoreDestination(repeatedStructuredPreferences, kyoto!);
+
+    expect(repeatedResult.score).toBe(baselineResult.score);
+    expect(repeatedResult.reasons).toEqual(baselineResult.reasons);
   });
 });

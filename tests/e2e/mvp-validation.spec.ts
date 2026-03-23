@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("validation failure can be corrected", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/plan");
 
   await page.getByRole("button", { name: /find destinations/i }).click();
 

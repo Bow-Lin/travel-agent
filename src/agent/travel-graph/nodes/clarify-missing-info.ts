@@ -6,7 +6,11 @@ function buildKnownContext(state: TravelAgentState) {
     return "No structured travel preferences have been recorded yet.";
   }
 
-  return `Current preferences: origin ${state.preferences.originRegion || "unknown"}, budget CNY ${state.preferences.budgetMin}-${state.preferences.budgetMax}, climate ${state.preferences.climate}, pace ${state.preferences.pace}.`;
+  const noteContext = state.preferences.additionalRequirements
+    ? ` Additional requirements: ${state.preferences.additionalRequirements}.`
+    : "";
+
+  return `Current preferences: origin ${state.preferences.originRegion || "unknown"}, budget CNY ${state.preferences.budgetMin}-${state.preferences.budgetMax}, climate ${state.preferences.climate}, pace ${state.preferences.pace}.${noteContext}`;
 }
 
 export async function clarifyMissingInfo(

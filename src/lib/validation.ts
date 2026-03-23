@@ -31,6 +31,11 @@ export const preferenceInputSchema = z.object({
     .int("Maximum budget must be between 0 and 100000.")
     .min(MIN_BUDGET_AMOUNT, "Maximum budget must be between 0 and 100000.")
     .max(MAX_BUDGET_AMOUNT, "Maximum budget must be between 0 and 100000."),
+  additionalRequirements: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => value ?? ""),
   interests: z
     .array(z.enum(DEFAULT_INTERESTS), { error: "Choose at least one travel interest." })
     .min(1, "Choose at least one travel interest."),

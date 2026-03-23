@@ -10,6 +10,7 @@ const validPreferences: PreferenceInput = {
   tripLengthDays: 6,
   budgetMin: 8000,
   budgetMax: 18000,
+  additionalRequirements: "",
   interests: ["food", "culture"],
   climate: "mild",
   pace: "balanced",
@@ -19,11 +20,17 @@ const validPreferences: PreferenceInput = {
 
 describe("validatePreferences node", () => {
   it("accepts valid structured preferences", () => {
-    const ingested = ingestPreferences(createInitialTravelAgentState("thread-1"), validPreferences);
+    const ingested = ingestPreferences(createInitialTravelAgentState("thread-1"), {
+      ...validPreferences,
+      additionalRequirements: "  Need quiet evenings.  ",
+    });
     const state = validatePreferences(ingested);
 
     expect(state.phase).toBe("recommendation_ready");
-    expect(state.preferences).toEqual(validPreferences);
+    expect(state.preferences).toEqual({
+      ...validPreferences,
+      additionalRequirements: "Need quiet evenings.",
+    });
     expect(state.missingFields).toEqual([]);
   });
 

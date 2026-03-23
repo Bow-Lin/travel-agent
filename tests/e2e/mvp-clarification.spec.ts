@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("agent clarification appears before a valid shortlist", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/plan");
 
   await page.getByLabel(/where are you leaving from/i).fill("Shanghai");
   await page.getByRole("button", { name: /find destinations/i }).click();

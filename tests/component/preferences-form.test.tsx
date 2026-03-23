@@ -25,6 +25,12 @@ describe("PreferencesForm", () => {
     await user.selectOptions(screen.getByLabelText(/pace/i), "packed");
     await user.selectOptions(screen.getByLabelText(/travel month/i), "May");
     await user.selectOptions(screen.getByLabelText(/party type/i), "friends");
+    await user.click(screen.getByRole("button", { name: /add requirements/i }));
+    await user.type(
+      screen.getByLabelText(/additional requirements note/i),
+      "Need easy train access and tea-house neighborhoods.",
+    );
+    await user.click(screen.getByRole("button", { name: /save requirements/i }));
     await user.click(screen.getByLabelText(/food/i));
     await user.click(screen.getByLabelText(/beach/i));
     await user.click(screen.getByRole("button", { name: /find destinations/i }));
@@ -35,6 +41,7 @@ describe("PreferencesForm", () => {
         tripLengthDays: 10,
         budgetMin: 9000,
         budgetMax: 22000,
+        additionalRequirements: "Need easy train access and tea-house neighborhoods.",
         interests: ["food", "beach"],
         climate: "warm",
         pace: "packed",
@@ -70,5 +77,45 @@ describe("PreferencesForm", () => {
 
     expect(await screen.findByText("Planner is unavailable right now.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /find destinations/i })).toBeEnabled();
+  });
+
+  it("supports save, cancel, and clear flows for additional requirements", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn<
+      (input: PreferenceInput) => Promise<{ ok: true } | { ok: false; error: string }>
+    >().mockResolvedValue({ ok: true });
+
+    render(<PreferencesForm onSubmit={onSubmit} />);
+
+    await user.click(screen.getByRole("button", { name: /add requirements/i }));
+    const triggerButton = screen.getByRole("button", { name: /add requirements/i });
+    const noteField = screen.getByLabelText(/additional requirements note/i);
+
+    await user.type(noteField, "Avoid overnight transfers");
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+
+    expect(screen.getByText(/no extra requirements saved yet/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(triggerButton).toHaveFocus();
+    });
+
+    await user.click(screen.getByRole("button", { name: /add requirements/i }));
+    await user.type(screen.getByLabelText(/additional requirements note/i), "Need calm tea houses");
+    await user.click(screen.getByRole("button", { name: /save requirements/i }));
+
+    expect(screen.getAllByText("Need calm tea houses").length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit requirements/i })).toHaveFocus();
+    });
+
+    await user.click(screen.getByRole("button", { name: /edit requirements/i }));
+    expect(screen.getByLabelText(/additional requirements note/i)).toHaveValue("Need calm tea houses");
+
+    await user.click(screen.getByRole("button", { name: /clear note/i }));
+    expect(screen.getByLabelText(/additional requirements note/i)).toHaveValue("");
+
+    await user.click(screen.getByRole("button", { name: /save requirements/i }));
+
+    expect(screen.getByText(/no extra requirements saved yet/i)).toBeInTheDocument();
   });
 });

@@ -10,6 +10,7 @@ describe("preferenceInputSchema", () => {
       tripLengthDays: 6,
       budgetMin: 5000,
       budgetMax: 15000,
+      additionalRequirements: "  Need easy rail access.  ",
       interests: [DEFAULT_INTERESTS[0], DEFAULT_INTERESTS[2]],
       climate: "mild",
       pace: "balanced",
@@ -18,6 +19,10 @@ describe("preferenceInputSchema", () => {
     });
 
     expect(result.success).toBe(true);
+
+    if (result.success) {
+      expect(result.data.additionalRequirements).toBe("Need easy rail access.");
+    }
   });
 
   it("rejects missing required fields", () => {
@@ -69,6 +74,7 @@ describe("preferenceInputSchema", () => {
       tripLengthDays: 6,
       budgetMin: 12000,
       budgetMax: 5000,
+      additionalRequirements: "",
       interests: [DEFAULT_INTERESTS[0]],
       climate: "mild",
       pace: "balanced",
@@ -82,6 +88,27 @@ describe("preferenceInputSchema", () => {
       expect(result.error.flatten().fieldErrors.budgetMax).toContain(
         "Maximum budget must be greater than or equal to minimum budget.",
       );
+    }
+  });
+
+  it("accepts blank additional requirements and normalizes them to an empty string", () => {
+    const result = preferenceInputSchema.safeParse({
+      originRegion: "Shanghai",
+      tripLengthDays: 6,
+      budgetMin: 5000,
+      budgetMax: 15000,
+      additionalRequirements: "   ",
+      interests: [DEFAULT_INTERESTS[0], DEFAULT_INTERESTS[2]],
+      climate: "mild",
+      pace: "balanced",
+      travelMonth: "October",
+      partyType: "couple",
+    });
+
+    expect(result.success).toBe(true);
+
+    if (result.success) {
+      expect(result.data.additionalRequirements).toBe("");
     }
   });
 });

@@ -42,7 +42,7 @@ const itinerary: GeneratedItinerary = {
   })),
 };
 
-describe("Home page flow", () => {
+describe("Planner page flow", () => {
   beforeEach(() => {
     mockedActions.recommendDestinationsAction.mockReset();
     mockedActions.confirmDestinationAction.mockReset();
@@ -76,15 +76,23 @@ describe("Home page flow", () => {
 
   it("moves from preferences to recommendations to itinerary", async () => {
     const user = userEvent.setup();
-    const { default: Home } = await import("@/app/page");
+    const { default: PlanPage } = await import("@/app/plan/page");
 
-    render(<Home />);
+    render(<PlanPage />);
 
     await user.type(screen.getByLabelText(/where are you leaving from/i), "Shanghai");
     await user.selectOptions(screen.getByLabelText(/travel month/i), "October");
+    await user.click(screen.getByRole("button", { name: /add requirements/i }));
+    await user.type(screen.getByLabelText(/additional requirements note/i), "Need calm tea houses");
+    await user.click(screen.getByRole("button", { name: /save requirements/i }));
     await user.click(screen.getByLabelText(/food/i));
     await user.click(screen.getByRole("button", { name: /find destinations/i }));
 
+    expect(mockedActions.recommendDestinationsAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        additionalRequirements: "Need calm tea houses",
+      }),
+    );
     expect(await screen.findByText("Kyoto")).toBeInTheDocument();
     expect(screen.getByText(/ranked shortlist/i)).toBeInTheDocument();
 

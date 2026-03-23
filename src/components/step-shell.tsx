@@ -219,8 +219,8 @@ export function StepShell({
   }
 
   return (
-    <section className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start xl:grid-cols-[300px_minmax(0,1fr)]">
-      <aside className="planner-panel planner-panel-muted p-5 sm:p-7 lg:sticky lg:top-8">
+    <section className="grid gap-6 lg:grid-cols-[290px_minmax(0,1fr)] lg:items-start xl:grid-cols-[310px_minmax(0,1fr)]">
+      <aside className="planner-panel planner-panel-muted p-5 sm:p-7 lg:sticky lg:top-8 lg:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="planner-kicker text-amber-700">Planner flow</p>
@@ -228,7 +228,7 @@ export function StepShell({
               Step {currentStep} of 4
             </h2>
           </div>
-          <div className="rounded-full border border-white/80 bg-white/75 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <div className="planner-tag">
             0{currentStep}/04
           </div>
         </div>
@@ -237,11 +237,13 @@ export function StepShell({
           The planner keeps one clear decision in front of you instead of showing every option at once.
         </p>
 
-        <div className="mt-6 rounded-full bg-white/70 p-1" aria-hidden="true">
-          <div
-            className="h-2 rounded-full bg-[linear-gradient(90deg,_#b86c2d,_#d0a06f)] transition-[width] duration-300"
-            style={{ width: `${(currentStep / steps.length) * 100}%` }}
-          />
+        <div className="planner-card-subtle mt-6 p-3" aria-hidden="true">
+          <div className="h-2 rounded-full bg-white/80">
+            <div
+              className="h-2 rounded-full bg-[linear-gradient(90deg,_#b86c2d,_#d0a06f)] transition-[width] duration-300"
+              style={{ width: `${(currentStep / steps.length) * 100}%` }}
+            />
+          </div>
         </div>
 
         <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
@@ -253,17 +255,17 @@ export function StepShell({
             return (
               <li
                 key={step.title}
-                className={`rounded-[1.5rem] border px-4 py-4 transition ${
+                className={`planner-card-subtle px-4 py-4 transition ${
                   isActive
-                    ? "border-amber-300 bg-amber-50/90 shadow-[0_12px_30px_rgba(180,118,58,0.12)]"
+                    ? "border-amber-300 bg-amber-50/90 shadow-[0_14px_32px_rgba(180,118,58,0.12)]"
                     : isComplete
-                      ? "border-emerald-200 bg-emerald-50/85"
-                      : "border-white/80 bg-white/72"
+                      ? "border-emerald-200 bg-emerald-50/88"
+                      : ""
                 }`}
               >
                 <div className="flex items-start gap-4">
                   <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
                       isActive
                         ? "bg-amber-200 text-amber-950"
                         : isComplete
@@ -276,7 +278,7 @@ export function StepShell({
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-base font-semibold text-slate-900">{step.title}</h3>
-                      <span className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                      <span className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
                         {isComplete ? "Complete" : isActive ? "Current" : "Up next"}
                       </span>
                     </div>
