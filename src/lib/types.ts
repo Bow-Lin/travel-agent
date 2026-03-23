@@ -70,3 +70,33 @@ export type GeneratedItinerary = {
   destination: ConfirmedDestination;
   days: ItineraryDay[];
 };
+
+export type TravelAgentPhase =
+  | "collecting_preferences"
+  | "clarifying_preferences"
+  | "recommendation_ready"
+  | "awaiting_confirmation"
+  | "generating_itinerary"
+  | "completed"
+  | "error";
+
+export type RecommendationStepData = {
+  threadId: string;
+  phase: TravelAgentPhase;
+  recommendations: DestinationRecommendation[];
+  message?: string;
+};
+
+export type ConfirmationStepData = {
+  threadId: string;
+  phase: TravelAgentPhase;
+  destination: ConfirmedDestination;
+  message?: string;
+};
+
+export type ItineraryStepData = {
+  threadId: string;
+  phase: TravelAgentPhase;
+  itinerary: GeneratedItinerary;
+  message?: string;
+};

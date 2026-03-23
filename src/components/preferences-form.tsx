@@ -29,6 +29,7 @@ const TRAVEL_MONTHS = [
 type SubmitResult = { ok: true } | { ok: false; error: string };
 
 type PreferencesFormProps = {
+  helperMessage?: string | null;
   isLocked?: boolean;
   onSubmit: (input: PreferenceInput) => Promise<SubmitResult>;
 };
@@ -59,7 +60,7 @@ function labelForValue(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export function PreferencesForm({ isLocked = false, onSubmit }: PreferencesFormProps) {
+export function PreferencesForm({ helperMessage = null, isLocked = false, onSubmit }: PreferencesFormProps) {
   const [formState, setFormState] = useState<FormState>(initialState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -308,12 +309,18 @@ export function PreferencesForm({ isLocked = false, onSubmit }: PreferencesFormP
         </div>
       </fieldset>
 
-      {errorMessage ? (
-        <p
-          aria-live="polite"
+        {errorMessage ? (
+          <p
+            aria-live="polite"
           className="planner-alert mt-6 px-4 py-3 text-sm text-rose-700"
         >
           {errorMessage}
+        </p>
+        ) : null}
+
+      {!errorMessage && helperMessage ? (
+        <p aria-live="polite" className="planner-alert mt-6 px-4 py-3 text-sm text-amber-900">
+          {helperMessage}
         </p>
       ) : null}
 

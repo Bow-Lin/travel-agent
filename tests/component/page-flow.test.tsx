@@ -48,9 +48,30 @@ describe("Home page flow", () => {
     mockedActions.confirmDestinationAction.mockReset();
     mockedActions.generateItineraryAction.mockReset();
 
-    mockedActions.recommendDestinationsAction.mockResolvedValue({ ok: true, data: recommendations });
-    mockedActions.confirmDestinationAction.mockResolvedValue({ ok: true, data: destination });
-    mockedActions.generateItineraryAction.mockResolvedValue({ ok: true, data: itinerary });
+    mockedActions.recommendDestinationsAction.mockResolvedValue({
+      ok: true,
+      data: {
+        threadId: "thread-1",
+        phase: "awaiting_confirmation",
+        recommendations,
+      },
+    });
+    mockedActions.confirmDestinationAction.mockResolvedValue({
+      ok: true,
+      data: {
+        threadId: "thread-1",
+        phase: "generating_itinerary",
+        destination,
+      },
+    });
+    mockedActions.generateItineraryAction.mockResolvedValue({
+      ok: true,
+      data: {
+        threadId: "thread-1",
+        phase: "completed",
+        itinerary,
+      },
+    });
   });
 
   it("moves from preferences to recommendations to itinerary", async () => {

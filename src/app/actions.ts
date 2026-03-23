@@ -2,13 +2,18 @@
 
 import type {
   ConfirmedDestination,
-  DestinationRecommendation,
-  GeneratedItinerary,
+  ConfirmationStepData,
+  ItineraryStepData,
   PreferenceInput,
+  RecommendationStepData,
 } from "@/lib/types";
-import { confirmedDestinationSchema, preferenceInputSchema } from "@/lib/validation";
-import { generateItinerary } from "@/server/itinerary/generate-itinerary";
-import { recommendDestinations } from "@/server/recommendations/recommend-destinations";
+import { confirmedDestinationSchema } from "@/lib/validation";
+import {
+  mapStateToConfirmationStep,
+  mapStateToItineraryStep,
+  mapStateToRecommendationStep,
+} from "@/agent/travel-graph/action-mappers";
+import { createTravelGraph } from "@/agent/travel-graph/graph";
 import { normalizeActionError } from "@/server/errors";
 
 type ActionSuccess<T> = {
@@ -25,23 +30,14 @@ type ActionResult<T> = ActionSuccess<T> | ActionFailure;
 
 export async function recommendDestinationsAction(
   input: PreferenceInput,
-): Promise<ActionResult<DestinationRecommendation[]>> {
-  const parsed = preferenceInputSchema.safeParse(input);
-
-  if (!parsed.success) {
-    const fieldErrors = parsed.error.flatten().fieldErrors;
-    const message = Object.values(fieldErrors).flat()[0] ?? "Invalid travel preferences.";
-
-    return {
-      ok: false,
-      error: message,
-    };
-  }
-
+): Promise<ActionResult<RecommendationStepData>> {
   try {
+    const graph = createTravelGraph();
+    const state = await graph.start(input);
+
     return {
       ok: true,
-      data: recommendDestinations(parsed.data),
+      data: mapStateToRecommendationStep(state),
     };
   } catch (error) {
     return {
@@ -52,76 +48,102 @@ export async function recommendDestinationsAction(
 }
 
 export async function confirmDestinationAction(
-  destinationId: string,
-  preferences: PreferenceInput,
-): Promise<ActionResult<ConfirmedDestination>> {
-  const parsed = preferenceInputSchema.safeParse(preferences);
-
-  if (!parsed.success) {
-    const fieldErrors = parsed.error.flatten().fieldErrors;
-    const message = Object.values(fieldErrors).flat()[0] ?? "Invalid travel preferences.";
-
+  input: { threadId: string; destinationId: string },
+): Promise<ActionResult<ConfirmationStepData>> {
+  if (!input.threadId.trim()) {
     return {
       ok: false,
-      error: message,
+      error: "Travel agent thread id is required.",
     };
   }
 
-  const recommendations = recommendDestinations(parsed.data);
-  const selected = recommendations.find((recommendation) => recommendation.id === destinationId);
-
-  if (!selected) {
+  if (!input.destinationId.trim()) {
     return {
       ok: false,
       error: "Please choose one of the recommended destinations.",
     };
   }
 
-  return {
-    ok: true,
-    data: {
-      destinationId: selected.id,
-      name: selected.name,
-      country: selected.country,
-    },
-  };
+  try {
+    const graph = createTravelGraph();
+    const state = await graph.confirm(input.threadId, input.destinationId);
+
+    if (state.phase === "error") {
+      return {
+        ok: false,
+        error: state.lastError ?? "Please choose one of the recommended destinations.",
+      };
+    }
+
+    return {
+      ok: true,
+      data: mapStateToConfirmationStep(state),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: normalizeActionError(error),
+    };
+  }
 }
 
 export async function generateItineraryAction(input: {
-  preferences: PreferenceInput;
-  destination: ConfirmedDestination;
-}): Promise<ActionResult<GeneratedItinerary>> {
-  const parsedPreferences = preferenceInputSchema.safeParse(input.preferences);
-
-  if (!parsedPreferences.success) {
-    const fieldErrors = parsedPreferences.error.flatten().fieldErrors;
-    const message = Object.values(fieldErrors).flat()[0] ?? "Invalid travel preferences.";
-
+  threadId: string;
+  destination?: ConfirmedDestination;
+}): Promise<ActionResult<ItineraryStepData>> {
+  if (!input.threadId.trim()) {
     return {
       ok: false,
-      error: message,
+      error: "Travel agent thread id is required.",
     };
   }
 
-  const parsedDestination = confirmedDestinationSchema.safeParse(input.destination);
+  if (input.destination) {
+    const parsedDestination = confirmedDestinationSchema.safeParse(input.destination);
 
-  if (!parsedDestination.success) {
-    const fieldErrors = parsedDestination.error.flatten().fieldErrors;
-    const message = Object.values(fieldErrors).flat()[0] ?? "Please confirm a recommended destination first.";
+    if (!parsedDestination.success) {
+      const fieldErrors = parsedDestination.error.flatten().fieldErrors;
+      const message = Object.values(fieldErrors).flat()[0] ?? "Please confirm a recommended destination first.";
 
-    return {
-      ok: false,
-      error: message,
-    };
+      return {
+        ok: false,
+        error: message,
+      };
+    }
   }
 
   try {
+    const graph = createTravelGraph();
+    const currentState = graph.getState(input.threadId);
+
+    if (input.destination && currentState?.selectedDestination) {
+      const selected = currentState.selectedDestination;
+      const provided = input.destination;
+
+      if (
+        selected.destinationId !== provided.destinationId ||
+        selected.name !== provided.name ||
+        selected.country !== provided.country
+      ) {
+        return {
+          ok: false,
+          error: "The provided destination does not match the active travel agent thread.",
+        };
+      }
+    }
+
+    const state = await graph.generate(input.threadId);
+
+    if (state.phase === "error") {
+      return {
+        ok: false,
+        error: state.lastError ?? "Itinerary generation failed.",
+      };
+    }
+
     return {
       ok: true,
-      data: generateItinerary({
-        preferences: parsedPreferences.data,
-        destination: parsedDestination.data,
-      }),
+      data: mapStateToItineraryStep(state),
     };
   } catch (error) {
     return {

@@ -24,7 +24,9 @@ describe("travel actions", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.data.threadId).toBeTruthy();
+      expect(result.data.phase).toBe("awaiting_confirmation");
+      expect(result.data.recommendations.length).toBeGreaterThan(0);
     }
   });
 
@@ -36,34 +38,55 @@ describe("travel actions", () => {
       return;
     }
 
-    const confirmed = await confirmDestinationAction(recommendationsResult.data[0].id, validPreferences);
+    const confirmed = await confirmDestinationAction({
+      threadId: recommendationsResult.data.threadId,
+      destinationId: recommendationsResult.data.recommendations[0].id,
+    });
 
     expect(confirmed.ok).toBe(true);
     if (confirmed.ok) {
-      expect(confirmed.data.destinationId).toBe(recommendationsResult.data[0].id);
+      expect(confirmed.data.threadId).toBe(recommendationsResult.data.threadId);
+      expect(confirmed.data.phase).toBe("generating_itinerary");
+      expect(confirmed.data.destination.destinationId).toBe(
+        recommendationsResult.data.recommendations[0].id,
+      );
     }
   });
 
   it("returns structured itinerary data for valid input", async () => {
+    const started = await recommendDestinationsAction({
+      ...validPreferences,
+      tripLengthDays: 4,
+    });
+
+    expect(started.ok).toBe(true);
+    if (!started.ok) {
+      return;
+    }
+
+    const confirmed = await confirmDestinationAction({
+      threadId: started.data.threadId,
+      destinationId: started.data.recommendations[0].id,
+    });
+
+    expect(confirmed.ok).toBe(true);
+    if (!confirmed.ok) {
+      return;
+    }
+
     const result = await generateItineraryAction({
-      preferences: {
-        ...validPreferences,
-        tripLengthDays: 4,
-      },
-      destination: {
-        destinationId: "kyoto-japan",
-        name: "Kyoto",
-        country: "Japan",
-      },
+      threadId: confirmed.data.threadId,
+      destination: confirmed.data.destination,
     });
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.days).toHaveLength(4);
+      expect(result.data.phase).toBe("completed");
+      expect(result.data.itinerary.days).toHaveLength(4);
     }
   });
 
-  it("returns safe errors for invalid input", async () => {
+  it("returns clarification output for incomplete input", async () => {
     const result = await recommendDestinationsAction({
       originRegion: "",
       tripLengthDays: 0,
@@ -75,14 +98,25 @@ describe("travel actions", () => {
       partyType: "couple",
     });
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error).toContain("Please choose your departure region");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.phase).toBe("clarifying_preferences");
+      expect(result.data.message).toContain("originRegion");
     }
   });
 
   it("rejects destination confirmation that does not belong to authoritative recommendations", async () => {
-    const confirmed = await confirmDestinationAction("fake-destination", validPreferences);
+    const started = await recommendDestinationsAction(validPreferences);
+
+    expect(started.ok).toBe(true);
+    if (!started.ok) {
+      return;
+    }
+
+    const confirmed = await confirmDestinationAction({
+      threadId: started.data.threadId,
+      destinationId: "fake-destination",
+    });
 
     expect(confirmed.ok).toBe(false);
     if (!confirmed.ok) {
@@ -91,8 +125,15 @@ describe("travel actions", () => {
   });
 
   it("rejects malformed destination payloads before itinerary generation", async () => {
+    const started = await recommendDestinationsAction(validPreferences);
+
+    expect(started.ok).toBe(true);
+    if (!started.ok) {
+      return;
+    }
+
     const result = await generateItineraryAction({
-      preferences: validPreferences,
+      threadId: started.data.threadId,
       destination: {
         destinationId: "",
         name: "",
@@ -103,6 +144,39 @@ describe("travel actions", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error).toContain("Please confirm a recommended destination first");
+    }
+  });
+
+  it("rejects itinerary generation when the provided destination mismatches the active thread", async () => {
+    const started = await recommendDestinationsAction(validPreferences);
+
+    expect(started.ok).toBe(true);
+    if (!started.ok) {
+      return;
+    }
+
+    const confirmed = await confirmDestinationAction({
+      threadId: started.data.threadId,
+      destinationId: started.data.recommendations[0].id,
+    });
+
+    expect(confirmed.ok).toBe(true);
+    if (!confirmed.ok) {
+      return;
+    }
+
+    const result = await generateItineraryAction({
+      threadId: confirmed.data.threadId,
+      destination: {
+        destinationId: "lisbon-portugal",
+        name: "Lisbon",
+        country: "Portugal",
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain("does not match");
     }
   });
 });

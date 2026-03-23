@@ -16,6 +16,7 @@ describe("createTravelModel", () => {
 
   it("can be mocked in tests through the shared interface", async () => {
     const mockModel: TravelModel = {
+      clarifyMissingInformation: vi.fn().mockResolvedValue("clarify"),
       enhanceRecommendationSummary: vi.fn().mockResolvedValue("mocked summary"),
       enhanceItineraryDay: vi.fn().mockResolvedValue("mocked day"),
     };

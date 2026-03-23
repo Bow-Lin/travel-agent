@@ -7,10 +7,12 @@ import { ItineraryView } from "@/components/itinerary-view";
 import { PreferencesForm } from "@/components/preferences-form";
 import { RecommendationList } from "@/components/recommendation-list";
 import type {
+  ConfirmationStepData,
   ConfirmedDestination,
-  DestinationRecommendation,
-  GeneratedItinerary,
+  ItineraryStepData,
   PreferenceInput,
+  RecommendationStepData,
+  TravelAgentPhase,
 } from "@/lib/types";
 
 type ActionResult<T> =
@@ -24,15 +26,15 @@ type ActionResult<T> =
     };
 
 type StepShellProps = {
-  recommendDestinations: (input: PreferenceInput) => Promise<ActionResult<DestinationRecommendation[]>>;
-  confirmDestination: (
-    destinationId: string,
-    preferences: PreferenceInput,
-  ) => Promise<ActionResult<ConfirmedDestination>>;
+  recommendDestinations: (input: PreferenceInput) => Promise<ActionResult<RecommendationStepData>>;
+  confirmDestination: (input: {
+    threadId: string;
+    destinationId: string;
+  }) => Promise<ActionResult<ConfirmationStepData>>;
   generateItinerary: (input: {
-    preferences: PreferenceInput;
-    destination: ConfirmedDestination;
-  }) => Promise<ActionResult<GeneratedItinerary>>;
+    threadId: string;
+    destination?: ConfirmedDestination;
+  }) => Promise<ActionResult<ItineraryStepData>>;
 };
 
 const steps = [
@@ -60,29 +62,32 @@ export function StepShell({
   generateItinerary,
 }: StepShellProps) {
   const [preferences, setPreferences] = useState<PreferenceInput | null>(null);
-  const [recommendations, setRecommendations] = useState<DestinationRecommendation[]>([]);
+  const [threadId, setThreadId] = useState<string | null>(null);
+  const [phase, setPhase] = useState<TravelAgentPhase>("collecting_preferences");
+  const [recommendations, setRecommendations] = useState<RecommendationStepData["recommendations"]>([]);
   const [confirmedDestination, setConfirmedDestination] = useState<ConfirmedDestination | null>(null);
-  const [itinerary, setItinerary] = useState<GeneratedItinerary | null>(null);
+  const [itinerary, setItinerary] = useState<ItineraryStepData["itinerary"] | null>(null);
+  const [agentMessage, setAgentMessage] = useState<string | null>(null);
   const [isSubmittingPreferences, setIsSubmittingPreferences] = useState(false);
   const [isConfirmingDestination, setIsConfirmingDestination] = useState(false);
   const [isGeneratingItinerary, setIsGeneratingItinerary] = useState(false);
   const activeSubmissionId = useRef(0);
 
   const currentStep = useMemo(() => {
-    if (itinerary) {
+    if (phase === "completed") {
       return 4;
     }
 
-    if (confirmedDestination) {
+    if (phase === "generating_itinerary") {
       return 3;
     }
 
-    if (recommendations.length > 0) {
+    if (phase === "awaiting_confirmation" || phase === "recommendation_ready") {
       return 2;
     }
 
     return 1;
-  }, [confirmedDestination, itinerary, recommendations.length]);
+  }, [phase]);
 
   const isBusy = isSubmittingPreferences || isConfirmingDestination || isGeneratingItinerary;
 
@@ -107,18 +112,21 @@ export function StepShell({
       } as const;
     }
 
-    setIsSubmittingPreferences(false);
+      setIsSubmittingPreferences(false);
 
-    if (!result.ok) {
-      return result;
-    }
+      if (!result.ok) {
+        return result;
+      }
 
-    setPreferences(input);
-    setRecommendations(result.data);
-    setConfirmedDestination(null);
-    setItinerary(null);
+      setThreadId(result.data.threadId);
+      setPhase(result.data.phase);
+      setPreferences(input);
+      setRecommendations(result.data.recommendations);
+      setConfirmedDestination(null);
+      setItinerary(null);
+      setAgentMessage(result.data.message ?? null);
 
-    return { ok: true } as const;
+      return { ok: true } as const;
   }
 
   async function handleConfirm(destinationId: string) {
@@ -133,7 +141,15 @@ export function StepShell({
     activeSubmissionId.current = submissionId;
     setIsConfirmingDestination(true);
 
-    const result = await confirmDestination(destinationId, preferences);
+      if (!threadId) {
+        setIsConfirmingDestination(false);
+        return {
+          ok: false,
+          error: "Travel agent thread is missing.",
+        } as const;
+      }
+
+      const result = await confirmDestination({ threadId, destinationId });
 
     if (activeSubmissionId.current !== submissionId) {
       return {
@@ -144,18 +160,21 @@ export function StepShell({
 
     setIsConfirmingDestination(false);
 
-    if (!result.ok) {
-      return result;
-    }
+      if (!result.ok) {
+        return result;
+      }
 
-    setConfirmedDestination(result.data);
-    setItinerary(null);
+      setThreadId(result.data.threadId);
+      setPhase(result.data.phase);
+      setConfirmedDestination(result.data.destination);
+      setItinerary(null);
+      setAgentMessage(result.data.message ?? null);
 
-    return { ok: true } as const;
+      return { ok: true } as const;
   }
 
   async function handleGenerate() {
-    if (!preferences || !confirmedDestination) {
+    if (!threadId || !confirmedDestination) {
       return {
         ok: false,
         error: "Complete the planner steps before generating an itinerary.",
@@ -171,12 +190,12 @@ export function StepShell({
 
     const submissionId = activeSubmissionId.current + 1;
     activeSubmissionId.current = submissionId;
-    setIsGeneratingItinerary(true);
+      setIsGeneratingItinerary(true);
 
-    const result = await generateItinerary({
-      preferences,
-      destination: confirmedDestination,
-    });
+      const result = await generateItinerary({
+        threadId,
+        destination: confirmedDestination,
+      });
 
     if (activeSubmissionId.current !== submissionId) {
       return {
@@ -187,13 +206,16 @@ export function StepShell({
 
     setIsGeneratingItinerary(false);
 
-    if (!result.ok) {
-      return result;
-    }
+      if (!result.ok) {
+        return result;
+      }
 
-    setItinerary(result.data);
+      setThreadId(result.data.threadId);
+      setPhase(result.data.phase);
+      setItinerary(result.data.itinerary);
+      setAgentMessage(result.data.message ?? null);
 
-    return { ok: true } as const;
+      return { ok: true } as const;
   }
 
   return (
@@ -268,7 +290,11 @@ export function StepShell({
       </aside>
 
       <div className="min-w-0 space-y-6 lg:space-y-7">
-        <PreferencesForm isLocked={isBusy} onSubmit={handlePreferencesSubmit} />
+        <PreferencesForm
+          helperMessage={phase === "clarifying_preferences" ? agentMessage : null}
+          isLocked={isBusy}
+          onSubmit={handlePreferencesSubmit}
+        />
 
         {recommendations.length > 0 ? (
           <RecommendationList

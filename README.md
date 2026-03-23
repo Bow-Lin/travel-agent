@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Travel Agent
 
-## Getting Started
+A Next.js travel planning app that is being migrated from deterministic server functions to a LangGraph-driven agent flow. The current UI remains step-based: submit travel preferences, review recommendations, confirm a destination, and generate an itinerary.
 
-First, run the development server:
+## Current agent architecture
+
+- `src/components/step-shell.tsx` keeps the existing browser flow and stores the active `threadId`.
+- `src/app/actions.ts` is the server boundary between the UI and the graph runtime.
+- `src/agent/travel-graph/` contains the agent state, nodes, tools, graph runtime, and in-memory checkpointer.
+- `src/server/recommendations/` and `src/server/itinerary/` still provide deterministic tools used by the graph.
+- `src/server/llm/` exposes the LLM adapter used for clarification, recommendation reasoning, and itinerary polishing.
+
+## Human-in-the-loop confirmation
+
+The destination confirmation step is a graph interrupt/resume boundary.
+
+- The first graph run starts with preferences and returns a `threadId`, a graph `phase`, and either recommendations or a clarification message.
+- The confirmation action resumes the existing thread with a selected destination id.
+- The itinerary action resumes the same thread again to complete the itinerary step.
+
+## Checkpointing
+
+The current checkpointer is in-memory only.
+
+- It is intended for local development and test runs.
+- It does not survive server restarts.
+- A database or Redis-backed checkpointer has not been added yet.
+
+## Environment variables
+
+The app can run without an LLM API key because the adapter includes development fallbacks. To enable real LLM responses, set:
+
+```bash
+OPENAI_API_KEY=your_key_here
+OPENAI_MODEL=gpt-4o-mini
+```
+
+## Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000` in the browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verification
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run the full quality gate with:
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build
+npm run test:e2e
+```
