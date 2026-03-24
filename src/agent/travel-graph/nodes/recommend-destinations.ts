@@ -1,6 +1,5 @@
 import type { TravelAgentState } from "@/agent/travel-graph/state";
-import { runRecommendationTool } from "@/agent/travel-graph/tools/recommendation-tool";
-import { destinationCatalog } from "@/server/recommendations/destination-catalog";
+import { rankDestinations } from "@/server/recommendations/recommend-destinations";
 import { synthesizeSearchCandidates } from "@/server/recommendations/synthesize-search-candidates";
 import { searchTravelResearch } from "@/server/search/tavily";
 import type { TravelModelAdapter } from "@/server/llm/travel-model";
@@ -19,7 +18,7 @@ export async function recommendDestinationsNode(
 
   const preferences = state.preferences;
 
-  const baseRecommendations = runRecommendationTool(preferences);
+  const baseRecommendations = rankDestinations(preferences);
   const travelerContext = [
     `The traveler prefers ${preferences.interests.join(", ")} in ${preferences.travelMonth} with a budget range of CNY ${preferences.budgetMin}-${preferences.budgetMax} and wants a ${preferences.destinationScope} destination.`,
     preferences.additionalRequirements
@@ -38,7 +37,20 @@ export async function recommendDestinationsNode(
     .filter((value) => value.length > 0)
     .join(" ");
   const searchResults = await searchTravelResearch(searchQuery);
-  const searchCandidates = synthesizeSearchCandidates(destinationCatalog, searchResults);
+  const searchCandidates = synthesizeSearchCandidates(
+    baseRecommendations.map((recommendation) => ({
+      id: recommendation.id,
+      name: recommendation.name,
+      country: recommendation.country,
+      summary: recommendation.summary,
+      budgetBand: recommendation.budgetBand,
+      climate: [],
+      interests: [],
+      bestMonths: recommendation.bestMonths,
+      tripStyles: [],
+    })),
+    searchResults,
+  );
   const searchMatchedIds = new Set(searchCandidates.candidateIds);
 
   const recommendations = await Promise.all(
@@ -61,8 +73,8 @@ export async function recommendDestinationsNode(
   );
 
   recommendations.sort((left, right) => {
-    const leftBoost = searchMatchedIds.has(left.id) ? 1 : 0;
-    const rightBoost = searchMatchedIds.has(right.id) ? 1 : 0;
+    const leftBoost = searchCandidates.candidateScores.get(left.id) ?? 0;
+    const rightBoost = searchCandidates.candidateScores.get(right.id) ?? 0;
 
     if (leftBoost !== rightBoost) {
       return rightBoost - leftBoost;
@@ -71,10 +83,12 @@ export async function recommendDestinationsNode(
     return right.score - left.score;
   });
 
+  const shortlistedRecommendations = recommendations.slice(0, 4);
+
   return {
     ...state,
     phase: "awaiting_confirmation",
-    recommendations,
+    recommendations: shortlistedRecommendations,
     lastError: undefined,
   };
 }

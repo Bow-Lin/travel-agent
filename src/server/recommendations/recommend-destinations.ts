@@ -2,7 +2,7 @@ import type { DestinationRecommendation, PreferenceInput } from "@/lib/types";
 import { destinationCatalog } from "@/server/recommendations/destination-catalog";
 import { scoreDestination } from "@/server/recommendations/score-destination";
 
-export function recommendDestinations(preferences: PreferenceInput): DestinationRecommendation[] {
+export function rankDestinations(preferences: PreferenceInput): DestinationRecommendation[] {
   return destinationCatalog
     .filter((destination) =>
       preferences.destinationScope === "domestic"
@@ -25,4 +25,8 @@ export function recommendDestinations(preferences: PreferenceInput): Destination
       bestMonths: destination.bestMonths,
       score,
     }));
+}
+
+export function recommendDestinations(preferences: PreferenceInput): DestinationRecommendation[] {
+  return rankDestinations(preferences).slice(0, 4);
 }

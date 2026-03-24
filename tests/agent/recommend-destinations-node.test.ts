@@ -16,9 +16,9 @@ describe("recommendDestinationsNode", () => {
   it("calls the recommendation tool and enriches reasons with llm output", async () => {
     searchTravelResearchMock.mockResolvedValue([
       {
-        title: "Kyoto tea house guide",
-        url: "https://example.com/kyoto",
-        content: "Kyoto is known for calm tea-house neighborhoods and cultural travel.",
+        title: "Sapporo winter city guide",
+        url: "https://example.com/sapporo",
+        content: "Sapporo, Japan is a compelling choice for a calm cultural winter trip.",
       },
     ]);
 
@@ -54,6 +54,7 @@ describe("recommendDestinationsNode", () => {
     expect(state.phase).toBe("awaiting_confirmation");
     expect(state.recommendations?.length).toBeGreaterThan(0);
     expect(state.recommendations?.[0].matchReasons[0]).toContain("ideal for this trip");
+    expect(state.recommendations?.some((recommendation) => recommendation.matchReasons.some((reason) => reason.includes("Web research")))).toBe(true);
     expect(state.recommendations?.[0].matchReasons).toEqual(
       expect.arrayContaining([expect.stringContaining("Web research")]),
     );

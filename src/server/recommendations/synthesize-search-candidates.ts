@@ -18,8 +18,13 @@ export function synthesizeSearchCandidates(
 
     for (const result of searchResults) {
       const searchableText = normalize(`${result.title} ${result.url} ${result.content}`);
-      if (searchableText.includes(destinationName) || searchableText.includes(countryName)) {
-        candidateScores.set(destination.id, (candidateScores.get(destination.id) ?? 0) + 1);
+      const nameMatched = searchableText.includes(destinationName);
+      const countryMatched = searchableText.includes(countryName);
+
+      if (nameMatched || countryMatched) {
+        const weightedScore = (nameMatched ? 3 : 0) + (countryMatched ? 1 : 0);
+
+        candidateScores.set(destination.id, (candidateScores.get(destination.id) ?? 0) + weightedScore);
 
         if (!highlights.has(destination.id)) {
           highlights.set(destination.id, result.content || result.title);
@@ -34,6 +39,7 @@ export function synthesizeSearchCandidates(
 
   return {
     candidateIds,
+    candidateScores,
     highlights,
   };
 }

@@ -49,4 +49,13 @@ describe("searchTravelResearch", () => {
       },
     ]);
   });
+
+  it("falls back to an empty list when fetch throws", async () => {
+    process.env.TAVILY_API_KEY = "tavily-test";
+    fetchMock.mockRejectedValue(new Error("network failed"));
+
+    const { searchTravelResearch } = await import("@/server/search/tavily");
+
+    await expect(searchTravelResearch("kyoto tea houses")).resolves.toEqual([]);
+  });
 });
