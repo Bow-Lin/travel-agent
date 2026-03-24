@@ -37,6 +37,7 @@ Example:
 IFLOW_API_KEY=your_key_here
 IFLOW_BASE_URL=https://apis.iflow.cn/v1
 IFLOW_MODEL=qwen3-max
+TAVILY_API_KEY=your_tavily_key_here
 ```
 
 Notes:
@@ -85,6 +86,8 @@ If the env vars are loaded correctly, the LangGraph flow will use iFlow for:
 - missing-field clarification
 - recommendation reasoning
 - itinerary polishing
+
+Planning-stage destination research can also use Tavily when `TAVILY_API_KEY` is configured. If Tavily is missing or unavailable, the planner falls back to the local destination catalog only.
 
 If the env vars are missing, the app still runs, but those steps fall back to local deterministic text.
 

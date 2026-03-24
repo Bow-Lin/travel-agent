@@ -4,8 +4,24 @@ import { recommendDestinationsNode } from "@/agent/travel-graph/nodes/recommend-
 import { createInitialTravelAgentState } from "@/agent/travel-graph/state";
 import type { TravelModelAdapter } from "@/server/llm/travel-model";
 
+const { searchTravelResearchMock } = vi.hoisted(() => ({
+  searchTravelResearchMock: vi.fn(),
+}));
+
+vi.mock("@/server/search/tavily", () => ({
+  searchTravelResearch: searchTravelResearchMock,
+}));
+
 describe("recommendDestinationsNode", () => {
   it("calls the recommendation tool and enriches reasons with llm output", async () => {
+    searchTravelResearchMock.mockResolvedValue([
+      {
+        title: "Kyoto tea house guide",
+        url: "https://example.com/kyoto",
+        content: "Kyoto is known for calm tea-house neighborhoods and cultural travel.",
+      },
+    ]);
+
     const adapter: TravelModelAdapter = {
       clarifyMissingInformation: vi.fn().mockResolvedValue("clarify"),
       enhanceRecommendationSummary: vi
@@ -38,11 +54,15 @@ describe("recommendDestinationsNode", () => {
     expect(state.phase).toBe("awaiting_confirmation");
     expect(state.recommendations?.length).toBeGreaterThan(0);
     expect(state.recommendations?.[0].matchReasons[0]).toContain("ideal for this trip");
+    expect(state.recommendations?.[0].matchReasons).toEqual(
+      expect.arrayContaining([expect.stringContaining("Web research")]),
+    );
     expect(adapter.enhanceRecommendationSummary).toHaveBeenCalledWith(
       expect.objectContaining({
         additionalRequirements: "Need tea-house neighborhoods",
         travelerContext: expect.stringMatching(/overseas|Need tea-house neighborhoods/),
       }),
     );
+    expect(searchTravelResearchMock).toHaveBeenCalledWith(expect.stringContaining("tea-house neighborhoods"));
   });
 });

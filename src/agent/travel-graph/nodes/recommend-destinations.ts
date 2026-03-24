@@ -1,5 +1,8 @@
 import type { TravelAgentState } from "@/agent/travel-graph/state";
 import { runRecommendationTool } from "@/agent/travel-graph/tools/recommendation-tool";
+import { destinationCatalog } from "@/server/recommendations/destination-catalog";
+import { synthesizeSearchCandidates } from "@/server/recommendations/synthesize-search-candidates";
+import { searchTravelResearch } from "@/server/search/tavily";
 import type { TravelModelAdapter } from "@/server/llm/travel-model";
 
 export async function recommendDestinationsNode(
@@ -26,6 +29,18 @@ export async function recommendDestinationsNode(
     .filter((value) => value !== null)
     .join(" ");
 
+  const searchQuery = [
+    preferences.destinationScope,
+    preferences.travelMonth,
+    preferences.interests.join(" "),
+    preferences.additionalRequirements,
+  ]
+    .filter((value) => value.length > 0)
+    .join(" ");
+  const searchResults = await searchTravelResearch(searchQuery);
+  const searchCandidates = synthesizeSearchCandidates(destinationCatalog, searchResults);
+  const searchMatchedIds = new Set(searchCandidates.candidateIds);
+
   const recommendations = await Promise.all(
     baseRecommendations.map(async (recommendation) => ({
       ...recommendation,
@@ -36,9 +51,25 @@ export async function recommendDestinationsNode(
           travelerContext,
           additionalRequirements: preferences.additionalRequirements,
         }),
+        ...(searchMatchedIds.has(recommendation.id)
+          ? [
+              `Web research also surfaced ${recommendation.name} as a relevant match${searchCandidates.highlights.get(recommendation.id) ? `: ${searchCandidates.highlights.get(recommendation.id)}` : "."}`,
+            ]
+          : []),
       ],
     })),
   );
+
+  recommendations.sort((left, right) => {
+    const leftBoost = searchMatchedIds.has(left.id) ? 1 : 0;
+    const rightBoost = searchMatchedIds.has(right.id) ? 1 : 0;
+
+    if (leftBoost !== rightBoost) {
+      return rightBoost - leftBoost;
+    }
+
+    return right.score - left.score;
+  });
 
   return {
     ...state,
