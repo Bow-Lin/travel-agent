@@ -91,6 +91,25 @@ Planning-stage destination research can also use Tavily when `TAVILY_API_KEY` is
 
 If the env vars are missing, the app still runs, but those steps fall back to local deterministic text.
 
+## Optional Travel MCP enablement
+
+You can also enable the `travel-mcp-server` locally without wiring it into the planner flow yet.
+
+Add these variables to `travel_agent/.env.local` when you want the project to be MCP-ready:
+
+```bash
+TRAVEL_MCP_ENABLED=true
+TRAVEL_MCP_COMMAND=npx
+TRAVEL_MCP_ARGS=travel-mcp-server
+```
+
+Notes:
+
+- This only enables the local MCP bootstrap layer in `src/server/mcp/`.
+- The current app does **not** call MCP tools from the planner flow yet.
+- You can keep `TRAVEL_MCP_ENABLED=false` or omit it entirely until your upstream travel APIs are ready.
+- If you want to run the MCP server manually, use its own project instructions and required API keys.
+
 ## Test behavior
 
 Automated tests do not call the real LLM.
