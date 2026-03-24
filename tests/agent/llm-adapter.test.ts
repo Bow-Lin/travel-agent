@@ -31,6 +31,15 @@ describe("travel model adapter", () => {
         additionalRequirements: "Need quiet tea-house neighborhoods.",
       }),
     ).resolves.toContain("quiet tea-house neighborhoods");
+
+    const recommendation = await adapter.enhanceRecommendationSummary({
+      destinationName: "Kyoto",
+      summary: "Temples and seasonal food.",
+      travelerContext: "The traveler prefers culture and food in October.",
+      additionalRequirements: "Need quiet tea-house neighborhoods.",
+    });
+
+    expect(recommendation.match(/quiet tea-house neighborhoods/gi)?.length).toBe(1);
   });
 
   it("can polish itinerary text", async () => {

@@ -11,7 +11,6 @@ export function rankDestinations(preferences: PreferenceInput): DestinationRecom
     )
     .map((destination) => scoreDestination(preferences, destination))
     .sort((left, right) => right.score - left.score)
-    .slice(0, 4)
     .map(({ destination, score, reasons }) => ({
       id: destination.id,
       name: destination.name,

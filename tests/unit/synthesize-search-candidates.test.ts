@@ -22,4 +22,18 @@ describe("synthesizeSearchCandidates", () => {
     expect(result.candidateIds).toContain("lisbon-portugal");
     expect(result.highlights.get("kyoto-japan")).toContain("tea-house neighborhoods");
   });
+
+  it("does not boost cities from country-only mentions", () => {
+    const result = synthesizeSearchCandidates(destinationCatalog, [
+      {
+        title: "Japan autumn travel tips",
+        url: "https://example.com/japan",
+        content: "Japan offers excellent autumn travel without naming any city.",
+      },
+    ]);
+
+    expect(result.candidateIds).not.toContain("kyoto-japan");
+    expect(result.candidateIds).not.toContain("sapporo-japan");
+    expect(result.highlights.size).toBe(0);
+  });
 });

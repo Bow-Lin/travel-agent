@@ -20,6 +20,7 @@ describe("createTravelModel", () => {
 
     expect(result).toContain("Kyoto");
     expect(result).toContain("quiet tea-house neighborhoods");
+    expect(result.match(/quiet tea-house neighborhoods/gi)?.length).toBe(1);
   });
 
   it("can be mocked in tests through the shared interface", async () => {

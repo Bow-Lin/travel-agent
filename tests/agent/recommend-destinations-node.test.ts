@@ -53,15 +53,18 @@ describe("recommendDestinationsNode", () => {
 
     expect(state.phase).toBe("awaiting_confirmation");
     expect(state.recommendations?.length).toBeGreaterThan(0);
-    expect(state.recommendations?.[0].matchReasons[0]).toContain("ideal for this trip");
-    expect(state.recommendations?.some((recommendation) => recommendation.matchReasons.some((reason) => reason.includes("Web research")))).toBe(true);
-    expect(state.recommendations?.[0].matchReasons).toEqual(
+    const sapporoRecommendation = state.recommendations?.find(
+      (recommendation) => recommendation.id === "sapporo-japan",
+    );
+    expect(sapporoRecommendation).toBeDefined();
+    expect(sapporoRecommendation?.matchReasons[0]).toContain("ideal for this trip");
+    expect(sapporoRecommendation?.matchReasons).toEqual(
       expect.arrayContaining([expect.stringContaining("Web research")]),
     );
     expect(adapter.enhanceRecommendationSummary).toHaveBeenCalledWith(
       expect.objectContaining({
         additionalRequirements: "Need tea-house neighborhoods",
-        travelerContext: expect.stringMatching(/overseas|Need tea-house neighborhoods/),
+        travelerContext: expect.not.stringContaining("Need tea-house neighborhoods"),
       }),
     );
     expect(searchTravelResearchMock).toHaveBeenCalledWith(expect.stringContaining("tea-house neighborhoods"));
