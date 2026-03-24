@@ -28,8 +28,9 @@ describe("travel model adapter", () => {
         destinationName: "Kyoto",
         summary: "Temples and seasonal food.",
         travelerContext: "The traveler prefers culture and food in October.",
+        additionalRequirements: "Need quiet tea-house neighborhoods.",
       }),
-    ).resolves.toContain("Kyoto");
+    ).resolves.toContain("quiet tea-house neighborhoods");
   });
 
   it("can polish itinerary text", async () => {
@@ -40,8 +41,9 @@ describe("travel model adapter", () => {
         destinationName: "Kyoto",
         dayTheme: "Food discoveries",
         content: "Visit a morning market and finish with dinner.",
+        additionalRequirements: "Need quiet tea-house neighborhoods.",
       }),
-    ).resolves.toContain("Kyoto");
+    ).resolves.toContain("quiet tea-house neighborhoods");
   });
 
   it("is mockable without provider-specific fields", async () => {

@@ -14,28 +14,34 @@ export async function generateItineraryNode(
     };
   }
 
+  const preferences = state.preferences;
+  const destination = state.selectedDestination;
+
   const baseItinerary = runItineraryTool({
-    preferences: state.preferences,
-    destination: state.selectedDestination,
+    preferences,
+    destination,
   });
 
   const days = await Promise.all(
     baseItinerary.days.map(async (day) => ({
       ...day,
       morning: await llmAdapter.enhanceItineraryDay({
-        destinationName: state.selectedDestination!.name,
+        destinationName: destination.name,
         dayTheme: day.theme,
         content: day.morning,
+        additionalRequirements: preferences.additionalRequirements,
       }),
       afternoon: await llmAdapter.enhanceItineraryDay({
-        destinationName: state.selectedDestination!.name,
+        destinationName: destination.name,
         dayTheme: day.theme,
         content: day.afternoon,
+        additionalRequirements: preferences.additionalRequirements,
       }),
       evening: await llmAdapter.enhanceItineraryDay({
-        destinationName: state.selectedDestination!.name,
+        destinationName: destination.name,
         dayTheme: day.theme,
         content: day.evening,
+        additionalRequirements: preferences.additionalRequirements,
       }),
     })),
   );

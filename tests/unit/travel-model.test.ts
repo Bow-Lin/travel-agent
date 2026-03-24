@@ -15,9 +15,11 @@ describe("createTravelModel", () => {
     const result = await model.enhanceRecommendationSummary({
       destinationName: "Kyoto",
       summary: "A calm cultural city.",
+      additionalRequirements: "Need quiet tea-house neighborhoods.",
     });
 
     expect(result).toContain("Kyoto");
+    expect(result).toContain("quiet tea-house neighborhoods");
   });
 
   it("can be mocked in tests through the shared interface", async () => {

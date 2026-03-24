@@ -14,11 +14,13 @@ export async function recommendDestinationsNode(
     };
   }
 
-  const baseRecommendations = runRecommendationTool(state.preferences);
+  const preferences = state.preferences;
+
+  const baseRecommendations = runRecommendationTool(preferences);
   const travelerContext = [
-    `The traveler prefers ${state.preferences.interests.join(", ")} in ${state.preferences.travelMonth} with a budget range of CNY ${state.preferences.budgetMin}-${state.preferences.budgetMax}.`,
-    state.preferences.additionalRequirements
-      ? `Additional requirements to honor: ${state.preferences.additionalRequirements}.`
+    `The traveler prefers ${preferences.interests.join(", ")} in ${preferences.travelMonth} with a budget range of CNY ${preferences.budgetMin}-${preferences.budgetMax}.`,
+    preferences.additionalRequirements
+      ? `Additional requirements to honor: ${preferences.additionalRequirements}.`
       : null,
   ]
     .filter((value) => value !== null)
@@ -32,6 +34,7 @@ export async function recommendDestinationsNode(
           destinationName: recommendation.name,
           summary: recommendation.summary,
           travelerContext,
+          additionalRequirements: preferences.additionalRequirements,
         }),
       ],
     })),

@@ -23,7 +23,7 @@ describe("generateItineraryNode", () => {
           tripLengthDays: 2,
           budgetMin: 8000,
           budgetMax: 18000,
-          additionalRequirements: "",
+          additionalRequirements: "Need quiet tea-house neighborhoods.",
           interests: ["food", "culture"],
           climate: "mild",
           pace: "balanced",
@@ -42,5 +42,10 @@ describe("generateItineraryNode", () => {
     expect(state.phase).toBe("completed");
     expect(state.itinerary?.days).toHaveLength(2);
     expect(state.itinerary?.days[0].morning).toContain("Kyoto:");
+    expect(adapter.enhanceItineraryDay).toHaveBeenCalledWith(
+      expect.objectContaining({
+        additionalRequirements: "Need quiet tea-house neighborhoods.",
+      }),
+    );
   });
 });

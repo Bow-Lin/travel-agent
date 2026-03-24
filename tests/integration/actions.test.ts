@@ -22,13 +22,17 @@ describe("travel actions", () => {
   };
 
   it("returns recommendations for valid preference input", async () => {
-    const result = await recommendDestinationsAction(validPreferences);
+    const result = await recommendDestinationsAction({
+      ...validPreferences,
+      additionalRequirements: "Need quiet tea-house neighborhoods.",
+    });
 
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.threadId).toBeTruthy();
       expect(result.data.phase).toBe("awaiting_confirmation");
       expect(result.data.recommendations.length).toBeGreaterThan(0);
+      expect(result.data.recommendations[0].matchReasons[0]).toContain("quiet tea-house neighborhoods");
     }
   });
 

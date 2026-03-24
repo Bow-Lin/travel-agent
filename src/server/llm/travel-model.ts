@@ -10,12 +10,14 @@ type RecommendationEnhancementInput = {
   destinationName: string;
   summary: string;
   travelerContext?: string;
+  additionalRequirements?: string;
 };
 
 type ItineraryEnhancementInput = {
   destinationName: string;
   dayTheme: string;
   content: string;
+  additionalRequirements?: string;
 };
 
 export type TravelModelAdapter = {
@@ -63,17 +65,25 @@ export function createTravelModel(): TravelModelAdapter {
       const fallback = `Please share ${missingFields.join(", ")} so I can refine the travel recommendation. ${knownContext}`;
       return (await maybeInvokeModel(clarificationPrompt(missingFields, knownContext))) ?? fallback;
     },
-    async enhanceRecommendationSummary({ destinationName, summary, travelerContext }) {
+    async enhanceRecommendationSummary({ destinationName, summary, travelerContext, additionalRequirements }) {
       const normalizedContext = travelerContext ?? "the stated travel preferences align well with this destination";
-      const fallback = `${destinationName} is a strong fit for this trip because ${normalizedContext.toLowerCase()}. ${summary}`;
+      const noteSuffix = additionalRequirements ? ` Must honor: ${additionalRequirements}.` : "";
+      const fallback = `${destinationName} is a strong fit for this trip because ${normalizedContext.toLowerCase()}.${noteSuffix} ${summary}`;
       return (
-        (await maybeInvokeModel(recommendationPrompt(destinationName, summary, normalizedContext))) ??
+        (await maybeInvokeModel(
+          recommendationPrompt(destinationName, summary, normalizedContext, additionalRequirements),
+        )) ??
         fallback
       );
     },
-    async enhanceItineraryDay({ destinationName, dayTheme, content }) {
-      const fallback = `${destinationName}: ${dayTheme}. ${content}`;
-      return (await maybeInvokeModel(itineraryPrompt(destinationName, dayTheme, content))) ?? fallback;
+    async enhanceItineraryDay({ destinationName, dayTheme, content, additionalRequirements }) {
+      const noteSuffix = additionalRequirements ? ` Must honor: ${additionalRequirements}.` : "";
+      const fallback = `${destinationName}: ${dayTheme}. ${content}${noteSuffix}`;
+      return (
+        (await maybeInvokeModel(
+          itineraryPrompt(destinationName, dayTheme, content, additionalRequirements),
+        )) ?? fallback
+      );
     },
   };
 }
