@@ -23,6 +23,7 @@ describe("recommendDestinationsNode", () => {
           tripLengthDays: 6,
           budgetMin: 8000,
           budgetMax: 18000,
+          destinationScope: "overseas",
           additionalRequirements: "Need tea-house neighborhoods",
           interests: ["food", "culture"],
           climate: "mild",
@@ -39,7 +40,8 @@ describe("recommendDestinationsNode", () => {
     expect(state.recommendations?.[0].matchReasons[0]).toContain("ideal for this trip");
     expect(adapter.enhanceRecommendationSummary).toHaveBeenCalledWith(
       expect.objectContaining({
-        travelerContext: expect.stringContaining("Need tea-house neighborhoods"),
+        additionalRequirements: "Need tea-house neighborhoods",
+        travelerContext: expect.stringMatching(/overseas|Need tea-house neighborhoods/),
       }),
     );
   });

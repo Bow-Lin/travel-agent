@@ -21,6 +21,7 @@ describe("PreferencesForm", () => {
     await user.type(screen.getByLabelText(/budget minimum/i), "9000");
     await user.clear(screen.getByLabelText(/budget maximum/i));
     await user.type(screen.getByLabelText(/budget maximum/i), "22000");
+    await user.click(screen.getByRole("button", { name: /domestic/i }));
     await user.selectOptions(screen.getByLabelText(/climate/i), "warm");
     await user.selectOptions(screen.getByLabelText(/pace/i), "packed");
     await user.selectOptions(screen.getByLabelText(/travel month/i), "May");
@@ -41,6 +42,7 @@ describe("PreferencesForm", () => {
         tripLengthDays: 10,
         budgetMin: 9000,
         budgetMax: 22000,
+        destinationScope: "domestic",
         additionalRequirements: "Need easy train access and tea-house neighborhoods.",
         interests: ["food", "beach"],
         climate: "warm",

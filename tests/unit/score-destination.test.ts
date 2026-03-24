@@ -9,6 +9,7 @@ const basePreferences: PreferenceInput = {
   tripLengthDays: 5,
   budgetMin: 8000,
   budgetMax: 16000,
+  destinationScope: "overseas",
   additionalRequirements: "",
   interests: ["culture", "food"],
   climate: "mild",
@@ -67,10 +68,28 @@ describe("scoreDestination", () => {
     expect(result.reasons).toEqual(
       expect.arrayContaining([
         expect.stringContaining("budget"),
+        expect.stringContaining("scope"),
         expect.stringContaining("climate"),
         expect.stringContaining("food"),
       ]),
     );
+  });
+
+  it("strongly prefers domestic destinations when domestic scope is selected", () => {
+    const domesticPreferences = {
+      ...basePreferences,
+      destinationScope: "domestic" as const,
+    };
+    const chengdu = destinationCatalog.find((destination) => destination.id === "chengdu-china");
+    const kyoto = destinationCatalog.find((destination) => destination.id === "kyoto-japan");
+
+    expect(chengdu).toBeDefined();
+    expect(kyoto).toBeDefined();
+
+    const domesticScore = scoreDestination(domesticPreferences, chengdu!);
+    const overseasScore = scoreDestination(domesticPreferences, kyoto!);
+
+    expect(domesticScore.score).toBeGreaterThan(overseasScore.score);
   });
 
   it("gives a capped boost when additional requirements materially match destination details", () => {

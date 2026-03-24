@@ -4,6 +4,7 @@ test("agent clarification appears before a valid shortlist", async ({ page }) =>
   await page.goto("/plan");
 
   await page.getByLabel(/where are you leaving from/i).fill("Shanghai");
+  await page.getByRole("button", { name: /overseas/i }).click();
   await page.getByRole("button", { name: /find destinations/i }).click();
 
   await expect(page.getByText(/please share interests/i)).toBeVisible();

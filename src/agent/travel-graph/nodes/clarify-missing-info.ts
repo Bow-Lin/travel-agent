@@ -10,7 +10,7 @@ function buildKnownContext(state: TravelAgentState) {
     ? ` Additional requirements: ${state.preferences.additionalRequirements}.`
     : "";
 
-  return `Current preferences: origin ${state.preferences.originRegion || "unknown"}, budget CNY ${state.preferences.budgetMin}-${state.preferences.budgetMax}, climate ${state.preferences.climate}, pace ${state.preferences.pace}.${noteContext}`;
+  return `Current preferences: origin ${state.preferences.originRegion || "unknown"}, budget CNY ${state.preferences.budgetMin}-${state.preferences.budgetMax}, scope ${state.preferences.destinationScope}, climate ${state.preferences.climate}, pace ${state.preferences.pace}.${noteContext}`;
 }
 
 export async function clarifyMissingInfo(

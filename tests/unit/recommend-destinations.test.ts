@@ -8,6 +8,7 @@ const preferences: PreferenceInput = {
   tripLengthDays: 7,
   budgetMin: 8000,
   budgetMax: 18000,
+  destinationScope: "overseas",
   additionalRequirements: "",
   interests: ["culture", "food", "history"],
   climate: "mild",
@@ -63,5 +64,15 @@ describe("recommendDestinations", () => {
     expect(withNote.find((recommendation) => recommendation.id === "kyoto-japan")?.score).toBeGreaterThan(
       withoutNote.find((recommendation) => recommendation.id === "kyoto-japan")?.score ?? 0,
     );
+  });
+
+  it("filters results to China when domestic scope is selected", () => {
+    const recommendations = recommendDestinations({
+      ...preferences,
+      destinationScope: "domestic",
+    });
+
+    expect(recommendations.length).toBeGreaterThan(0);
+    expect(recommendations.every((recommendation) => recommendation.country === "China")).toBe(true);
   });
 });

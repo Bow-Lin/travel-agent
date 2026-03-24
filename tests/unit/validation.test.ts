@@ -10,6 +10,7 @@ describe("preferenceInputSchema", () => {
       tripLengthDays: 6,
       budgetMin: 5000,
       budgetMax: 15000,
+      destinationScope: "overseas",
       additionalRequirements: "  Need easy rail access.  ",
       interests: [DEFAULT_INTERESTS[0], DEFAULT_INTERESTS[2]],
       climate: "mild",
@@ -30,6 +31,7 @@ describe("preferenceInputSchema", () => {
       tripLengthDays: 4,
       budgetMin: 5000,
       budgetMax: 15000,
+      destinationScope: "overseas",
       interests: [DEFAULT_INTERESTS[0]],
       climate: "warm",
       pace: "relaxed",
@@ -52,6 +54,7 @@ describe("preferenceInputSchema", () => {
       tripLengthDays: 0,
       budgetMin: 1000,
       budgetMax: 6000,
+      destinationScope: "overseas",
       interests: [DEFAULT_INTERESTS[1]],
       climate: "cold",
       pace: "packed",
@@ -74,6 +77,7 @@ describe("preferenceInputSchema", () => {
       tripLengthDays: 6,
       budgetMin: 12000,
       budgetMax: 5000,
+      destinationScope: "overseas",
       additionalRequirements: "",
       interests: [DEFAULT_INTERESTS[0]],
       climate: "mild",
@@ -97,6 +101,7 @@ describe("preferenceInputSchema", () => {
       tripLengthDays: 6,
       budgetMin: 5000,
       budgetMax: 15000,
+      destinationScope: "overseas",
       additionalRequirements: "   ",
       interests: [DEFAULT_INTERESTS[0], DEFAULT_INTERESTS[2]],
       climate: "mild",
@@ -109,6 +114,29 @@ describe("preferenceInputSchema", () => {
 
     if (result.success) {
       expect(result.data.additionalRequirements).toBe("");
+    }
+  });
+
+  it("rejects missing destination scope", () => {
+    const result = preferenceInputSchema.safeParse({
+      originRegion: "Shanghai",
+      tripLengthDays: 6,
+      budgetMin: 5000,
+      budgetMax: 15000,
+      additionalRequirements: "",
+      interests: [DEFAULT_INTERESTS[0]],
+      climate: "mild",
+      pace: "balanced",
+      travelMonth: "October",
+      partyType: "couple",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.destinationScope).toContain(
+        "Please choose domestic or overseas.",
+      );
     }
   });
 });

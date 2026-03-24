@@ -23,6 +23,7 @@ describe("generateItineraryNode", () => {
           tripLengthDays: 2,
           budgetMin: 8000,
           budgetMax: 18000,
+          destinationScope: "overseas",
           additionalRequirements: "Need quiet tea-house neighborhoods.",
           interests: ["food", "culture"],
           climate: "mild",

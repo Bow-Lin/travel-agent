@@ -31,6 +31,9 @@ export const preferenceInputSchema = z.object({
     .int("Maximum budget must be between 0 and 100000.")
     .min(MIN_BUDGET_AMOUNT, "Maximum budget must be between 0 and 100000.")
     .max(MAX_BUDGET_AMOUNT, "Maximum budget must be between 0 and 100000."),
+  destinationScope: z.enum(["domestic", "overseas"], {
+    error: "Please choose domestic or overseas.",
+  }),
   additionalRequirements: z
     .string()
     .trim()

@@ -10,6 +10,7 @@ const validPreferences: PreferenceInput = {
   tripLengthDays: 6,
   budgetMin: 8000,
   budgetMax: 18000,
+  destinationScope: "overseas",
   additionalRequirements: "",
   interests: ["food", "culture"],
   climate: "mild",

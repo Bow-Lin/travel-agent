@@ -11,12 +11,14 @@ export type ClimatePreference = (typeof CLIMATE_PREFERENCES)[number];
 export type TravelPace = (typeof TRAVEL_PACES)[number];
 export type PartyType = (typeof PARTY_TYPES)[number];
 export type Interest = (typeof DEFAULT_INTERESTS)[number];
+export type DestinationScope = "domestic" | "overseas";
 
 export type PreferenceInput = {
   originRegion: string;
   tripLengthDays: number;
   budgetMin: number;
   budgetMax: number;
+  destinationScope: DestinationScope;
   additionalRequirements: string;
   interests: Interest[];
   climate: ClimatePreference;

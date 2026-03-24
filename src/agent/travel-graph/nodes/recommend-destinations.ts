@@ -18,7 +18,7 @@ export async function recommendDestinationsNode(
 
   const baseRecommendations = runRecommendationTool(preferences);
   const travelerContext = [
-    `The traveler prefers ${preferences.interests.join(", ")} in ${preferences.travelMonth} with a budget range of CNY ${preferences.budgetMin}-${preferences.budgetMax}.`,
+    `The traveler prefers ${preferences.interests.join(", ")} in ${preferences.travelMonth} with a budget range of CNY ${preferences.budgetMin}-${preferences.budgetMax} and wants a ${preferences.destinationScope} destination.`,
     preferences.additionalRequirements
       ? `Additional requirements to honor: ${preferences.additionalRequirements}.`
       : null,

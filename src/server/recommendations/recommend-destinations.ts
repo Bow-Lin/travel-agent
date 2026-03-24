@@ -4,6 +4,11 @@ import { scoreDestination } from "@/server/recommendations/score-destination";
 
 export function recommendDestinations(preferences: PreferenceInput): DestinationRecommendation[] {
   return destinationCatalog
+    .filter((destination) =>
+      preferences.destinationScope === "domestic"
+        ? destination.country === "China"
+        : destination.country !== "China",
+    )
     .map((destination) => scoreDestination(preferences, destination))
     .sort((left, right) => right.score - left.score)
     .slice(0, 4)

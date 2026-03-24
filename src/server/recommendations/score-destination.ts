@@ -171,6 +171,22 @@ function scoreAdditionalRequirements(
   };
 }
 
+function scoreDestinationScope(preferences: Pick<PreferenceInput, "destinationScope">, destination: DestinationCatalogEntry) {
+  const isDomesticDestination = destination.country === "China";
+
+  if (preferences.destinationScope === "domestic") {
+    return {
+      score: isDomesticDestination ? 4 : -4,
+      reason: isDomesticDestination ? "Matches your domestic destination scope." : undefined,
+    };
+  }
+
+  return {
+    score: isDomesticDestination ? -3 : 3,
+    reason: !isDomesticDestination ? "Matches your overseas destination scope." : undefined,
+  };
+}
+
 export function scoreDestination(
   preferences: PreferenceInput,
   destination: DestinationCatalogEntry,
@@ -192,6 +208,12 @@ export function scoreDestination(
   if (preferences.climate === "any" || destination.climate.includes(preferences.climate)) {
     score += 3;
     reasons.push(`Fits your ${preferences.climate === "any" ? "flexible" : preferences.climate} climate preference.`);
+  }
+
+  const scopeMatch = scoreDestinationScope(preferences, destination);
+  score += scopeMatch.score;
+  if (scopeMatch.reason) {
+    reasons.push(scopeMatch.reason);
   }
 
   const interestMatches = destination.interests.filter((interest) => preferences.interests.includes(interest));

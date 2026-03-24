@@ -38,6 +38,7 @@ type FormState = {
   tripLengthDays: string;
   budgetMin: string;
   budgetMax: string;
+  destinationScope: PreferenceInput["destinationScope"];
   additionalRequirements: string;
   interests: PreferenceInput["interests"];
   climate: PreferenceInput["climate"];
@@ -51,6 +52,7 @@ const initialState: FormState = {
   tripLengthDays: "6",
   budgetMin: "5000",
   budgetMax: "15000",
+  destinationScope: "overseas",
   additionalRequirements: "",
   interests: [],
   climate: "mild",
@@ -169,6 +171,7 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
       tripLengthDays: Number(formState.tripLengthDays),
       budgetMin: Number(formState.budgetMin),
       budgetMax: Number(formState.budgetMax),
+      destinationScope: formState.destinationScope,
       additionalRequirements: formState.additionalRequirements,
       interests: formState.interests,
       climate: formState.climate,
@@ -290,6 +293,42 @@ export function PreferencesForm({ helperMessage = null, isLocked = false, onSubm
             }}
           />
         </label>
+
+        <fieldset className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+          <legend>Destination scope</legend>
+          <div
+            aria-label="Destination scope"
+            className="inline-flex rounded-full border border-stone-200 bg-white/80 p-1"
+            role="group"
+          >
+            {([
+              ["domestic", "Domestic"],
+              ["overseas", "Overseas"],
+            ] as const).map(([value, label]) => {
+              const isSelected = formState.destinationScope === value;
+
+              return (
+                <button
+                  key={value}
+                  aria-pressed={isSelected}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                    isSelected ? "bg-slate-900 text-white" : "text-slate-600"
+                  }`}
+                  disabled={isInteractionDisabled}
+                  type="button"
+                  onClick={() => {
+                    setFormState((current) => ({
+                      ...current,
+                      destinationScope: value,
+                    }));
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
           Climate

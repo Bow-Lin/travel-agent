@@ -22,6 +22,7 @@ describe("clarifyMissingInfo node", () => {
           tripLengthDays: 6,
           budgetMin: 8000,
           budgetMax: 18000,
+          destinationScope: "overseas",
           additionalRequirements: "Need quiet evenings",
           interests: [],
           climate: "mild",
